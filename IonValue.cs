@@ -14,6 +14,8 @@ namespace Bam.Ion
         {
             ContextData = new Dictionary<string, object>();
         }
+
+        
         public new IonMember<T> Value { get; set; }
     }
 
@@ -80,6 +82,11 @@ namespace Bam.Ion
         public static IonCollection Read(string json)
         {
             return IonCollection.Read(json);
+        }
+
+        protected override void SetTypeContext()
+        {
+            throw new NotImplementedException();
         }
     }
 }

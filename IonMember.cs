@@ -71,7 +71,7 @@ namespace Bam.Ion
 
         public static implicit operator string(IonMember ionMember)
         {
-            return ionMember.ToJson();
+            return ionMember?.ToJson() ?? "null";
         }
 
         public static implicit operator IonMember(string value)
