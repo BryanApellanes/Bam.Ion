@@ -112,6 +112,11 @@ namespace Bam.Ion
             return IonCollection.Read(json);
         }
 
+        public static IonCollection<T> Read<T>(string json)
+        {
+            return IonCollection<T>.Read(json);
+        }
+        
         protected override void SetTypeContext()
         {
             switch (TypeContextKind)
