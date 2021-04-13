@@ -8,6 +8,10 @@ using Bam.Net;
 
 namespace Bam.Ion
 {
+    /// <summary>
+    /// Ion value whose value property is of the specified generic type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class IonValue<T> : IonValue
     {
         public IonValue()
@@ -42,36 +46,60 @@ namespace Bam.Ion
             set;
         }
 
-        public IonValue AddContext(string name, object data)
+        public IonValue SetContext(string name, object data)
         {
             if(ContextData == null)
             {
                 ContextData = new Dictionary<string, object>();
             }
-            ContextData.Add(name, data);
+
+            if (ContextData.ContainsKey(name))
+            {
+                ContextData[name] = data;
+            }
+            else
+            {
+                ContextData.Add(name, data);
+            }
             return this;
         }
 
-        protected IonValue AddTypeContext(Type type)
+        public IonValue SetTypeContext<T>()
         {
-            return AddContext("type", type.Name);
+            return SetTypeContext(typeof(T));
         }
 
-        protected IonValue AddTypeFullNameContext(Type type)
+        public IonValue SetTypeContext(Type type)
         {
-            return AddContext("fullName", type.FullName);
+            return SetContext("type", type.Name);
         }
 
-        protected IonValue AddTypeAssemblyQaulifiedNameContext(Type type)
+        public IonValue SetTypeFullNameContext<T>()
         {
-            return AddContext("assemblyQualifiedName", type.AssemblyQualifiedName);
+            return SetTypeFullNameContext(typeof(T));
+        }
+
+        public IonValue SetTypeFullNameContext(Type type)
+        {
+            return SetContext("fullName", type.FullName);
+        }
+
+        public IonValue SetTypeAssemblyQualifiedNameContext<T>()
+        {
+            return SetTypeAssemblyQualifiedNameContext(typeof(T));
+        }
+
+        public IonValue SetTypeAssemblyQualifiedNameContext(Type type)
+        {
+            return SetContext("assemblyQualifiedName", type.AssemblyQualifiedName);
         }
 
         public IonMember Value { get; set; }
 
         public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
-            Dictionary<string, object> data = this.ToDictionary(pi => pi.Name.Equals("Value"));
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            data.Add(this.Value.Name, this.Value.Value);
             foreach (string key in ContextData?.Keys)
             {
                 data.Add(key, ContextData[key]);
@@ -86,7 +114,19 @@ namespace Bam.Ion
 
         protected override void SetTypeContext()
         {
-            throw new NotImplementedException();
+            switch (TypeContextKind)
+            {
+                case TypeContextKind.Invalid:
+                case TypeContextKind.TypeName:
+                    SetTypeContext(Type);
+                    break;
+                case TypeContextKind.FullName:
+                    SetTypeFullNameContext(Type);
+                    break;
+                case TypeContextKind.AssemblyQualifiedName:
+                    SetTypeAssemblyQualifiedNameContext(Type);
+                    break;
+            }
         }
     }
 }

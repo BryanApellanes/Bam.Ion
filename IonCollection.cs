@@ -9,38 +9,14 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonCollection<T> : IonCollection, IEnumerable<IonMember<T>>
+    public class IonCollection<T> : IonCollection
     {
-        private readonly List<IonMember<T>> _innerList;
-        public IonCollection()
+        public T ToInstance()
         {
-            _innerList = new List<IonMember<T>>();
-            Value = _innerList;
-        }
-        public new List<IonMember<T>> Value { get; set; }
-
-
-        public void Add(T value)
-        {
-            _innerList.Add(new IonMember<T> { Value = value });
-        }
-
-        public bool Contains(T value)
-        {
-            return _innerList.Contains(new IonMember(value));
-        }
-
-        public new bool Contain(object value)
-        {
-            return _innerList.Contains(new IonMember<T>((T)value));
-        }
-
-        IEnumerator<IonMember<T>> IEnumerable<IonMember<T>>.GetEnumerator()
-        {
-            return _innerList.GetEnumerator();
+            throw new NotImplementedException();
         }
     }
-
+    
     public class IonCollection : IonValue, IEnumerable
     {
         private readonly List<IonMember> _innerList;
@@ -60,9 +36,24 @@ namespace Bam.Ion
 
         public virtual void Add(object value)
         {
-            _innerList.Add(new IonMember(value));
+            if (value is IonMember ionMember)
+            {
+                AddIonMember(ionMember);
+            }
+            else
+            {
+                foreach (IonMember member in IonMember.GetMemberList(value))
+                {
+                    AddIonMember(member);
+                }
+            }
         }
 
+        public virtual void AddIonMember(IonMember ionMember)
+        {
+            _innerList.Add(ionMember);
+        }
+        
         public virtual bool Contains(object value)
         {
             return _innerList.Contains(value);
@@ -78,6 +69,7 @@ namespace Bam.Ion
             }
             return new IonCollection { Value = members };
         }
+        
         public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
             Dictionary<string, object> data = new Dictionary<string, object>();

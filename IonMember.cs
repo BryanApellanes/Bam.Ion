@@ -3,8 +3,10 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CsQuery.StringScanner.Patterns;
 
 namespace Bam.Ion
 {
@@ -15,6 +17,11 @@ namespace Bam.Ion
             return ionMember.Value;
         }
 
+        public static explicit operator IonMember<T>(T value)
+        {
+            return new IonMember<T>(value);
+        }
+        
         public IonMember() { }
         public IonMember(T value)
         {
@@ -85,7 +92,7 @@ namespace Bam.Ion
 
         public IonMember(object value)
         {
-            this.Name = "Value";
+            this.Name = "value";
             this.Value = value;
         }
 
@@ -103,7 +110,7 @@ namespace Bam.Ion
             }
             return $"{{\"{Name}\": {Value.ToJson(pretty, nullValueHandling)}}}";
         }
-
+        
         public string Name { get; set; }
 
         public object Value { get; set; }
@@ -136,6 +143,22 @@ namespace Bam.Ion
                 return -1;
             }
             return Value.GetHashCode() + Name.GetHashCode();
+        }
+
+        public static IEnumerable<IonMember> GetMemberList(object instance)
+        {
+            return GetMemberList(instance, (propertyInfo) => true);
+        }
+
+        public static IEnumerable<IonMember> GetMemberList(object instance, Func<PropertyInfo, bool> propertyFilter)
+        {
+            Args.ThrowIfNull(instance);
+            Args.ThrowIfNull(propertyFilter);
+
+            foreach (PropertyInfo propertyInfo in instance.GetType().GetProperties().ToList().Where(propertyFilter))
+            {
+                yield return new IonMember {Name = propertyInfo.Name, Value = propertyInfo.GetValue(instance)};
+            }
         }
     }
 }

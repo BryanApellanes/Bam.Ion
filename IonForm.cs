@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonForm : IonCollection<IonFormField>
+    public class IonForm : IonCollection
     {
     }
 }

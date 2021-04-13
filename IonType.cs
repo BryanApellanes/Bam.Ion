@@ -11,40 +11,33 @@ namespace Bam.Ion
 {
     public abstract class IonType
     {
-        private bool _includeTypeContext;
-
+        public IonType()
+        {
+            TypeContextKind = TypeContextKind.TypeName;
+        }
+        
         [YamlIgnore]
         [JsonIgnore]
-        public bool IncludeTypeContext
+        public TypeContextKind TypeContextKind
         {
-            get
-            {
-                return _includeTypeContext;
-            }
-            set
-            {
-                _includeTypeContext = value;
-                if (_includeTypeContext)
-                {
-                    SetTypeContext();
-                }
-            }
+            get;
+            set;
         }
-
-        Type _type;
-        protected Type Type
+        
+        private Type _type;
+        /// <summary>
+        /// Gets or sets the Type context.  Setting this value to a non null value causes IncludeTypeContext to return
+        /// true regardless if the IncludeTypeContext value is explicitly set to false.
+        /// </summary>
+        [YamlIgnore]
+        [JsonIgnore]
+        public Type Type
         {
-            get
-            {
-                return _type;
-            }
+            get => _type;
             set
             {
                 _type = value;
-                if (IncludeTypeContext)
-                {
-                    SetTypeContext();
-                }
+                SetTypeContext();
             }
         }
 
