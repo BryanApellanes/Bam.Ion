@@ -115,6 +115,35 @@ namespace Bam.Ion
 
         public object Value { get; set; }
 
+        public void SetProperty(object instance)
+        {
+            Type type = instance.GetType();
+            Dictionary<string, PropertyInfo> propertyInfos = GetPropertyDictionary(type);
+            if (propertyInfos.ContainsKey(Name))
+            {
+                propertyInfos[Name].SetValue(instance, Value);
+            }
+        }
+
+        internal static Dictionary<string, PropertyInfo> GetPropertyDictionary(Type type)
+        {
+            Dictionary<string, PropertyInfo> results = new Dictionary<string, PropertyInfo>();
+            foreach (PropertyInfo propertyInfo in type.GetProperties())
+            {
+                string camelCase = propertyInfo.Name.CamelCase();
+                string pascalCase = propertyInfo.Name.PascalCase();
+                if (!results.ContainsKey(camelCase))
+                {
+                    results.Add(camelCase, propertyInfo);
+                }
+                if (!results.ContainsKey(pascalCase))
+                {
+                    results.Add(pascalCase, propertyInfo);
+                }
+            }
+            return results;
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null && Value == null)
@@ -155,9 +184,9 @@ namespace Bam.Ion
             Args.ThrowIfNull(instance);
             Args.ThrowIfNull(propertyFilter);
 
-            foreach (PropertyInfo propertyInfo in instance.GetType().GetProperties().ToList().Where(propertyFilter))
+            foreach (PropertyInfo propertyInfo in instance.GetType().GetProperties().Where(propertyFilter))
             {
-                yield return new IonMember {Name = propertyInfo.Name, Value = propertyInfo.GetValue(instance)};
+                yield return new IonMember { Name = propertyInfo.Name, Value = propertyInfo.GetValue(instance) };
             }
         }
     }

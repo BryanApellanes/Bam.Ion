@@ -46,7 +46,7 @@ namespace Bam.Ion
             set;
         }
 
-        public IonValue SetContext(string name, object data)
+        public IonValue SetContextData(string name, object data)
         {
             if(ContextData == null)
             {
@@ -71,7 +71,7 @@ namespace Bam.Ion
 
         public IonValue SetTypeContext(Type type)
         {
-            return SetContext("type", type.Name);
+            return SetContextData("type", type.Name);
         }
 
         public IonValue SetTypeFullNameContext<T>()
@@ -81,7 +81,7 @@ namespace Bam.Ion
 
         public IonValue SetTypeFullNameContext(Type type)
         {
-            return SetContext("fullName", type.FullName);
+            return SetContextData("fullName", type.FullName);
         }
 
         public IonValue SetTypeAssemblyQualifiedNameContext<T>()
@@ -91,7 +91,7 @@ namespace Bam.Ion
 
         public IonValue SetTypeAssemblyQualifiedNameContext(Type type)
         {
-            return SetContext("assemblyQualifiedName", type.AssemblyQualifiedName);
+            return SetContextData("assemblyQualifiedName", type.AssemblyQualifiedName);
         }
 
         public IonMember Value { get; set; }

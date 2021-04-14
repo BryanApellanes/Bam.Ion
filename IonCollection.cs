@@ -13,6 +13,11 @@ namespace Bam.Ion
 {
     public class IonCollection<T> : IonCollection
     {
+        public static implicit operator T(IonCollection<T> ionCollection)
+        {
+            return ionCollection.ToInstance();
+        }
+
         public IonCollection()
         {
             Type = typeof(T);
@@ -21,23 +26,49 @@ namespace Bam.Ion
         public IonCollection(IonCollection other) : this()
         {
             this.Value = other.Value;
+            this.ContextData = other.ContextData ?? new Dictionary<string, object>();
         }
 
-        public IonCollection(IonCollection other, Dictionary<string, object> contextData)
+        public IonCollection(IonCollection other, Dictionary<string, object> contextData) : this(other)
         {
-            
+            foreach(string name in contextData.Keys)
+            {
+                SetContextData(name, contextData[name]);
+            }
         }
 
         public T ToInstance()
         {
-            throw new NotImplementedException();
+            ConstructorInfo ctor = typeof(T).GetConstructor(Type.EmptyTypes);
+            if(ctor == null)
+            {
+                throw new InvalidOperationException($"The specified type ({typeof(T).AssemblyQualifiedName}) does not have a parameterless constructor.");
+            }
+            T instance = (T)ctor.Invoke(null);
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            foreach(IonMember ionMember in this)
+            {
+                ionMember.SetProperty(instance);
+            }
+            return instance;
         }
 
         public static IonCollection<T> Read(string json)
         {
+            return Read(json, (propertyInfo) => true);
+        }
+
+        /// <summary>
+        /// Read the specified json using the specified property filter to determine what is a property, with the remaining values added to context data.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="propertyFilter"></param>
+        /// <returns></returns>
+        public static IonCollection<T> Read(string json, Func<PropertyInfo, bool> propertyFilter)
+        {
             IonCollection collection = IonCollection.Read(json);
             HashSet<string> properties = new HashSet<string>();
-            foreach (PropertyInfo propertyInfo in typeof(T).GetProperties())
+            foreach (PropertyInfo propertyInfo in typeof(T).GetProperties().Where(propertyFilter))
             {
                 properties.Add(propertyInfo.Name);
                 properties.Add(propertyInfo.Name.CamelCase());
@@ -80,7 +111,7 @@ namespace Bam.Ion
             set
             {
                 _innerList = value;
-                SetDictionary();
+                SetMemberDictionary();
             }
         }
 
@@ -119,11 +150,20 @@ namespace Bam.Ion
             return _innerList.Contains(value);
         }
 
+        /// <summary>
+        /// Move the specified member name to the context data dictionary and remove it from the main member list.
+        /// </summary>
+        /// <param name="memberName"></param>
         public virtual void SetContextData(string memberName)
         {
             SetContextData(memberName, out _);
         }
         
+        /// <summary>
+        /// Move the specified member name to the context data dictionary and remove it from the main member list.
+        /// </summary>
+        /// <param name="memberName"></param>
+        /// <param name="member"></param>
         public virtual void SetContextData(string memberName, out IonMember member)
         {
             member = null;
@@ -135,6 +175,10 @@ namespace Bam.Ion
             }
         }
 
+        /// <summary>
+        /// Sets the specified member as context data adding it if necessary, overwriting if a member with the same name already exists.
+        /// </summary>
+        /// <param name="ionMember">The IonMember.</param>
         public virtual void SetContextData(IonMember ionMember)
         {
             if (ContextData.ContainsKey(ionMember.Name))
@@ -145,6 +189,29 @@ namespace Bam.Ion
             {
                 ContextData.Add(ionMember.Name, ionMember);
             }
+        }
+
+        /// <summary>
+        /// Add the specified member if it is not already added.  Throw InvalidOperationException if a member with the same name already exists.
+        /// </summary>
+        /// <param name="memberName">The name of the member to add.</param>
+        /// <param name="value">The value of the member to add.</param>
+        public virtual void AddContextData(string memberName, object value)
+        {
+            AddContextData(new IonMember { Name = memberName, Value = value });
+        }
+
+        /// <summary>
+        /// Add the specified member if it is not already added.  Throw InvalidOperationException if a member with the same name already exists.
+        /// </summary>
+        /// <param name="ionMember"></param>
+        public virtual void AddContextData(IonMember ionMember)
+        {
+            if (ContextData.ContainsKey(ionMember.Name))
+            {
+                throw new InvalidOperationException($"ContextData member with the speciifed name already exists: {ionMember.Name}");
+            }
+            ContextData.Add(ionMember.Name, ionMember);
         }
 
         [YamlIgnore]
@@ -171,7 +238,22 @@ namespace Bam.Ion
                 return null;
             }
         }
-        
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public IonMember this[int index]
+        {
+            get
+            {
+                return _innerList[index];
+            }
+        }
+
+        /// <summary>
+        /// Read the specified json as an IonCollection.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static IonCollection Read(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
@@ -207,11 +289,11 @@ namespace Bam.Ion
             if (_innerList.Contains(member))
             {
                 _innerList.Remove(member);
-                SetDictionary();
+                SetMemberDictionary();
             }
         }
         
-        private void SetDictionary()
+        private void SetMemberDictionary()
         {
             _dictionary = new Dictionary<string, IonMember>();
             foreach (IonMember ionMember in _innerList)
