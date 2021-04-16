@@ -115,6 +115,11 @@ namespace Bam.Ion
 
         public object Value { get; set; }
 
+        public override string ToString()
+        {
+            return $"\"{Name}\": {Value}";
+        }
+
         public void SetProperty(object instance)
         {
             Type type = instance.GetType();

@@ -11,9 +11,6 @@ namespace Bam.Ion
     /// </summary>
     public abstract class Ion
     {
-        public static IonCollection<T> Read<T>(string json)
-        {
-            return IonCollection<T>.Read(json);
-        }
+
     }
 }

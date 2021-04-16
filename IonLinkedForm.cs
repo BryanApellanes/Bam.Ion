@@ -10,6 +10,6 @@ namespace Bam.Ion
     public class IonLinkedForm : IonForm, IIonLink
     {
         [JsonProperty("href")]
-        public string Href { get; set; }
+        public Iri Href { get; set; }
     }
 }

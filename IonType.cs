@@ -9,7 +9,7 @@ using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {
-    public abstract class IonType
+    public abstract class IonType 
     {
         public IonType()
         {
