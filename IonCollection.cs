@@ -11,7 +11,7 @@ using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {    
-    public class IonCollection : IJsonable, IEnumerable, IEnumerable<IonObject>
+    public class IonCollection : IonObject, IJsonable, IEnumerable, IEnumerable<IonObject>
     {
         private List<IonObject> _innerList;
 
@@ -72,7 +72,8 @@ namespace Bam.Ion
 
         public string ToJson(bool pretty, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
-            return _innerList.ToJson(pretty, nullValueHandling);
+            IonMember ionMember = new IonMember(_innerList);
+            return ionMember.ToJson(pretty, nullValueHandling);
         }
         
         protected void RemoveObject(IonObject ionObject)

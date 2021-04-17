@@ -74,6 +74,23 @@ namespace Bam.Ion
             this.SetMemberDictionary();
         }
 
+        public override bool Equals(object obj)
+        {
+            if(obj == null && Value == null)
+            {
+                return true;
+            }
+            if(obj != null && Value == null)
+            {
+                return false;
+            }
+            if(obj != null && Value != null)
+            {
+                return Value.Equals(obj);
+            }
+            return false;
+        }
+
         public List<IonMember> Members
         {
             get
@@ -210,6 +227,7 @@ namespace Bam.Ion
                 }              
             }
             result.SetMemberDictionary();
+            result.Value = result.ToInstance();
             return result;
         }
         
