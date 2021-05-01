@@ -40,6 +40,12 @@ namespace Bam.Ion
                 { "name", Name },
                 { RelationType, new { href = Href } }
             }.ToJson(pretty)
-;        }
+;       }
+
+        public static IonLink Read(string json, string nameKey, string relationTypeKey)
+        {
+            Dictionary<string, object> parsed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            return new IonLink(parsed[nameKey].ToString(), parsed[relationTypeKey].ToString(), parsed["href"].ToString());
+        }
     }
 }

@@ -11,17 +11,17 @@ using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {    
-    public class IonCollection : IonObject, IJsonable, IEnumerable, IEnumerable<IonObject>
+    public class IonCollection : IonValueObject, IJsonable, IEnumerable, IEnumerable<IonValueObject>
     {
-        private List<IonObject> _innerList;
+        private List<IonValueObject> _innerList;
 
         public IonCollection()
         {
-            _innerList = new List<IonObject>();
+            _innerList = new List<IonValueObject>();
             Value = _innerList;
         }
 
-        public new List<IonObject> Value
+        public new List<IonValueObject> Value
         {
             get => _innerList;
             set
@@ -30,7 +30,7 @@ namespace Bam.Ion
             }
         }
 
-        IEnumerator<IonObject> IEnumerable<IonObject>.GetEnumerator()
+        IEnumerator<IonValueObject> IEnumerable<IonValueObject>.GetEnumerator()
         {
             return _innerList.GetEnumerator();
         }
@@ -40,11 +40,21 @@ namespace Bam.Ion
             return _innerList.GetEnumerator();
         }
 
-        public virtual void Add(IonObject ionMember)
+        public virtual void Add(IonValueObject ionValueObject)
         {
-            _innerList.Add(ionMember);
+            _innerList.Add(ionValueObject);
         }
         
+        public virtual void Add<T>(string json)
+        {
+            this.Add<T>(new IonValueObject<T>(json));
+        }
+
+        public virtual void Add<T>(IonValueObject<T> ionValueObject)
+        {
+            _innerList.Add(ionValueObject);
+        }
+
         public virtual bool Contains(object value)
         {
             return _innerList.Contains(value);
@@ -57,7 +67,7 @@ namespace Bam.Ion
 
         [YamlIgnore]
         [JsonIgnore]
-        public IonObject this[int index]
+        public IonValueObject this[int index]
         {
             get
             {
@@ -76,7 +86,7 @@ namespace Bam.Ion
             return ionMember.ToJson(pretty, nullValueHandling);
         }
         
-        protected void RemoveObject(IonObject ionObject)
+        protected void RemoveObject(IonValueObject ionObject)
         {
             if (_innerList.Contains(ionObject))
             {

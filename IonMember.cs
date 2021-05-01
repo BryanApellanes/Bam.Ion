@@ -62,6 +62,10 @@ namespace Bam.Ion
 
     public class IonMember
     {
+        static IonMember()
+        {
+        }
+
         public IonMember()
         {
         }
@@ -83,9 +87,9 @@ namespace Bam.Ion
 
         public static implicit operator IonMember(string value)
         {
-            if (value.Trim().StartsWith("{"))
+            if(value.TryFromJson<IonMember>(out IonMember result))
             {
-                return value.FromJson<IonMember>();
+                return result;
             }
             return new IonMember { Name = "value", Value = value };
         }
@@ -106,9 +110,9 @@ namespace Bam.Ion
         {
             if (pretty)
             {
-                return $"{{\r\n  \"{Name}\": {Value.ToJson(pretty, nullValueHandling)}\r\n}}";
+                return $"{{\r\n  \"{Name}\": {Value?.ToJson(pretty, nullValueHandling)}\r\n}}";
             }
-            return $"{{\"{Name}\": {Value.ToJson(pretty, nullValueHandling)}}}";
+            return $"{{\"{Name}\": {Value?.ToJson(pretty, nullValueHandling)}}}";
         }
         
         public string Name { get; set; }
@@ -120,6 +124,10 @@ namespace Bam.Ion
             return $"\"{Name}\": {Value}";
         }
 
+        /// <summary>
+        /// Sets the property on the specified instance to the value of the current IonMember where the name matches the name of the current IonMember.
+        /// </summary>
+        /// <param name="instance"></param>
         public void SetProperty(object instance)
         {
             Type type = instance.GetType();
@@ -127,6 +135,15 @@ namespace Bam.Ion
             if (propertyInfos.ContainsKey(Name))
             {
                 propertyInfos[Name].SetValue(instance, Value);
+            }
+        }
+
+        public static IEnumerable<IonMember> ListFromJson(string json)
+        {
+            Dictionary<string, object> members = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            foreach(string key in members.Keys)
+            {
+                yield return new IonMember(key, members[key]);
             }
         }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonFile : IonObject<Base64UrlEncodedByteArray>
+    public class IonFile : IonValueObject<Base64UrlEncodedByteArray>
     { 
     }    
 }
