@@ -121,7 +121,7 @@ namespace Bam.Ion
 
         public override string ToString()
         {
-            return $"\"{Name}\": {Value}";
+            return $"\"{Name}\": {Value?.ToJson()}";
         }
 
         /// <summary>

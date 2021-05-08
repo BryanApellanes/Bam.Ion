@@ -16,7 +16,18 @@ namespace Bam.Ion
     /// <typeparam name="T"></typeparam>
     public class IonValueObject<T> : IonValueObject
     {
+        public static implicit operator IonValueObject<T>(T value)
+        {
+            return new IonValueObject<T> { Value = value };
+        }
+
+        public static implicit operator string(IonValueObject<T> value)
+        {
+            return value.ToJson();
+        }
+
         public IonValueObject() { }
+
         public IonValueObject(List<IonMember> members) : base(members)
         {
             this.Value = this.ToInstance();
@@ -38,11 +49,38 @@ namespace Bam.Ion
             set
             {
                 _value = value;
-                if (this.Members == null || this.Members?.Count == 0)
+                base.Value = value;
+                if ((this.Members == null || this.Members?.Count == 0) &&
+                    _value != null)
                 {
-                    this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
+                    Type typeOfValue = _value.GetType();
+                    if (!IonValueTypes.All.Contains(typeOfValue))
+                    {
+                        this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
+                    }
                 }           
             }
+        }
+
+        public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        {
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            if (this.Value != null)
+            {
+                data.Add("value", Value);
+            }
+
+            foreach (IonMember member in Members)
+            {
+                data.Add(member.Name, member.Value);
+            }
+
+            foreach (string key in SupportingMembers?.Keys)
+            {
+                data.Add(key, SupportingMembers[key]);
+            }
+
+            return data.ToJson(pretty, nullValueHandling);
         }
 
         public T ToInstance()
@@ -60,6 +98,7 @@ namespace Bam.Ion
             }
             return instance;
         }
+
         public override bool Equals(object obj)
         {
             if (obj == null && Value == null)
@@ -86,7 +125,7 @@ namespace Bam.Ion
         }
     }
 
-    public class IonValueObject : IonType, IJsonable, IEnumerable<IonMember>
+    public class IonValueObject : IonType, IJsonable, IIonJsonable, IEnumerable<IonMember>
     {
         public static implicit operator IonValueObject(string value)
         {
@@ -119,6 +158,22 @@ namespace Bam.Ion
             this._memberList = ionMembers;
             this.SupportingMembers = contextData;
             this.SetMemberDictionary();
+        }
+
+        public T ToInstance<T>()
+        {
+            ConstructorInfo ctor = typeof(T).GetConstructor(Type.EmptyTypes);
+            if (ctor == null)
+            {
+                throw new InvalidOperationException($"The specified type ({typeof(T).AssemblyQualifiedName}) does not have a parameterless constructor.");
+            }
+            T instance = (T)ctor.Invoke(null);
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            foreach (IonMember ionMember in this)
+            {
+                ionMember.SetProperty(instance);
+            }
+            return instance;
         }
 
         public override bool Equals(object obj)
@@ -178,8 +233,31 @@ namespace Bam.Ion
             }
         }
 
-        public object Value { get; set; }
+        object _value;
+        public object Value 
+        {
+            get => _value;
+            set
+            {
+                _value = value;
+                if ((this.Members == null || this.Members?.Count == 0) &&
+                   _value != null)
+                {
+                    Type typeOfValue = _value.GetType();
+                    if (!IonValueTypes.All.Contains(typeOfValue))
+                    {
+                        this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
+                    }
+                }
+            }
+        }
 
+        /// <summary>
+        /// Add supporting member data to this ion value object.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public IonValueObject SetSupportingMember(string name, object data)
         {
             if(SupportingMembers == null)
@@ -195,6 +273,34 @@ namespace Bam.Ion
             {
                 SupportingMembers.Add(name, data);
             }
+
+            return this;
+        }
+
+        public IonValueObject AddSupportingMembers(List<System.Collections.Generic.KeyValuePair<string, object>> keyValuePairs)
+        {
+            foreach(System.Collections.Generic.KeyValuePair<string, object> kvp in keyValuePairs)
+            {
+                AddSupportingMember(kvp.Key, kvp.Value);
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Adds the specified supporting member if a supporting member of the same name does
+        /// not already exist.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public IonValueObject AddSupportingMember(string name, object data = null)
+        {
+            if (!SupportingMembers.ContainsKey(name))
+            {
+                SupportingMembers.Add(name, data);
+            }
+
             return this;
         }
 
@@ -228,31 +334,7 @@ namespace Bam.Ion
             return SetSupportingMember("assemblyQualifiedName", type.AssemblyQualifiedName);
         }
 
-        public string ToJson()
-        {
-            return ToJson(false);
-        }
-
-        public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
-        {
-            Dictionary<string, object> data = new Dictionary<string, object>();
-            if(Value != null)
-            {
-                data.Add("value", Value);
-            }
-            foreach(IonMember member in _memberList)
-            {
-                data.Add(member.Name, member.Value);
-            }
-
-            foreach (string key in SupportingMembers?.Keys)
-            {
-                data.Add(key, SupportingMembers[key]);
-            }
-            return data.ToJson(pretty, nullValueHandling);
-        }
-
-        public static IonValueObject Read(string json)
+        public static IonValueObject ReadValue(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
             List<IonMember> members = new List<IonMember>();
@@ -263,13 +345,13 @@ namespace Bam.Ion
             return new IonValueObject(members);
         }
 
-        public static IonValueObject<T> Read<T>(string json)
+        public static IonValueObject<T> ReadValue<T>(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
             Dictionary<string, PropertyInfo> properties = IonMember.GetPropertyDictionary(typeof(T));
             List<IonMember> members = new List<IonMember>();
+            List<System.Collections.Generic.KeyValuePair<string, object>> supportingMembers = new List<System.Collections.Generic.KeyValuePair<string, object>>();
 
-            IonValueObject<T> result = new IonValueObject<T>(members);
             foreach (System.Collections.Generic.KeyValuePair<string, object> keyValuePair in dictionary)
             {
                 if (properties.ContainsKey(keyValuePair.Key))
@@ -278,11 +360,14 @@ namespace Bam.Ion
                 }
                 else
                 {
-                    result.SetSupportingMember(keyValuePair.Key, keyValuePair.Value);
+                    supportingMembers.Add(keyValuePair);
                 }              
             }
+
+            IonValueObject<T> result = new IonValueObject<T>(members);
             result.SetMemberDictionary();
             result.Value = result.ToInstance();
+            result.AddSupportingMembers(supportingMembers);
             return result;
         }
         
@@ -308,8 +393,10 @@ namespace Bam.Ion
             _memberDictionary = new Dictionary<string, IonMember>();
             foreach (IonMember ionMember in _memberList)
             {
-                _memberDictionary.Add(ionMember.Name, ionMember);
-                _memberDictionary.Add(ionMember.Name.PascalCase(), ionMember);
+                string camelCase = ionMember.Name.CamelCase();
+                string pascalCase = ionMember.Name.PascalCase();
+                _memberDictionary.Add(camelCase, ionMember);
+                _memberDictionary.Add(pascalCase, ionMember);
             }
         }
 
@@ -321,6 +408,64 @@ namespace Bam.Ion
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _memberList.GetEnumerator();
+        }
+
+        public virtual string ToJson()
+        {
+            return ToJson(false);
+        }
+
+        public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        {
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            if (this.Value != null)
+            {
+                data = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(Value));
+            }
+
+            foreach (IonMember member in _memberList)
+            {
+                data.Add(member.Name, member.Value);
+            }
+
+            foreach (string key in SupportingMembers?.Keys)
+            {
+                data.Add(key, SupportingMembers[key]);
+            }
+            return data.ToJson(pretty, nullValueHandling);
+        }
+
+        public virtual string ToIonJson()
+        {
+            return ToIonJson(false);
+        }
+
+        public virtual string ToIonJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        {
+            Dictionary<string, object> data = new Dictionary<string, object>();
+            if (this.Value != null)
+            {
+                if(this.Value is IIonJsonable ionJsonable)
+                {
+                    data.Add("value", ionJsonable.ToIonJson(pretty, nullValueHandling));
+                }
+                else
+                {
+                    data.Add("value", Value);
+                }
+            }
+
+            foreach (IonMember member in _memberList)
+            {
+                data.Add(member.Name, member.Value);
+            }
+
+            foreach (string key in SupportingMembers?.Keys)
+            {
+                data.Add(key, SupportingMembers[key]);
+            }
+
+            return data.ToJson(pretty, nullValueHandling);
         }
     }
 }

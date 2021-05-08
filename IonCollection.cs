@@ -1,5 +1,6 @@
 ﻿using Bam.Net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,14 +12,29 @@ using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {    
-    public class IonCollection : IonValueObject, IJsonable, IEnumerable, IEnumerable<IonValueObject>
+    public class IonCollection : IonValueObject, IJsonable, IIonJsonable, IEnumerable, IEnumerable<IonValueObject>
     {
         private List<IonValueObject> _innerList;
+        private Dictionary<string, object> _metaData;
 
         public IonCollection()
         {
             _innerList = new List<IonValueObject>();
+            _metaData = new Dictionary<string, object>();
             Value = _innerList;
+        }
+
+        public IonCollection(List<IonValueObject> ionValues) 
+        {
+            _innerList = ionValues;
+            _metaData = new Dictionary<string, object>();
+            Value = _innerList;
+        }
+
+        [JsonIgnore]
+        public Dictionary<string, object> MetaDataElements
+        {
+            get => _metaData;
         }
 
         public new List<IonValueObject> Value
@@ -60,7 +76,6 @@ namespace Bam.Ion
             return _innerList.Contains(value);
         }
 
-
         [YamlIgnore]
         [JsonIgnore]
         public int Count => _innerList.Count;
@@ -75,17 +90,61 @@ namespace Bam.Ion
             }
         }
 
-        public string ToJson()
+        public override string ToJson()
         {
-            return ToJson(false);
+            return this.ToJson(false);
         }
 
-        public string ToJson(bool pretty, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        public override string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
-            IonMember ionMember = new IonMember(_innerList);
-            return ionMember.ToJson(pretty, nullValueHandling);
+            return base.ToJson(pretty, nullValueHandling);
         }
-        
+
+        public override string ToIonJson()
+        {
+            return ToIonJson(false);
+        }
+
+        public override string ToIonJson(bool pretty, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
+        {
+            Dictionary<string, object> toBeSerialized = new Dictionary<string, object>
+            {
+                { "value", _innerList }
+            };
+            return toBeSerialized.ToJson(pretty, nullValueHandling);
+        }
+
+        public IonCollection AddElementMetaData(string name, object value)
+        {
+            _metaData.Add(name, Value);
+            return this;
+        }
+
+        public static IonCollection Read(string json)
+        {
+            Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            List<IonValueObject> ionValues = new List<IonValueObject>();
+            if (dictionary.ContainsKey("value"))
+            {
+                JArray arrayValue = dictionary["value"] as JArray;
+                foreach(JToken token in arrayValue)
+                {
+                    ionValues.Add(token.ToJson());
+                }
+            }
+            IonCollection ionCollection = new IonCollection(ionValues);
+
+            foreach(string key in dictionary.Keys)
+            {
+                if (!"value".Equals(key))
+                {
+                    ionCollection.AddElementMetaData(key, dictionary[key]);
+                }
+            }
+
+            return ionCollection;
+        }
+
         protected void RemoveObject(IonValueObject ionObject)
         {
             if (_innerList.Contains(ionObject))
