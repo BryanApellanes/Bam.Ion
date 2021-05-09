@@ -37,7 +37,7 @@ namespace Bam.Ion
         public IonCollection(List<JToken> jTokens)
         {
             _jTokens = jTokens;
-            _ionValueObjectList = jTokens.Select(jt=> new IonValueObject { Value = jt }).ToList();
+            _ionValueObjectList = jTokens.Select(jt => new IonValueObject { Value = jt }).ToList();
             _metaData = new Dictionary<string, object>();
             Value = _ionValueObjectList;
         }
@@ -103,7 +103,7 @@ namespace Bam.Ion
 
         [YamlIgnore]
         [JsonIgnore]
-        public string SourceJson { get; set; }
+        public string SourceJson { get; internal set; }
 
         public override string ToJson()
         {

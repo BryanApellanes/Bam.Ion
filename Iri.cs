@@ -25,5 +25,20 @@ namespace Bam.Ion
         public Iri(string uriString) : base(uriString)
         {
         }
+
+        public static bool IsIri(string url, out Iri iri, Action<Exception> exceptionHandler = null)
+        {
+            iri = null;
+            try
+            {
+                iri = new Iri(url);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (exceptionHandler ?? ((ex) => Bam.Net.Logging.Log.Error("Exception parsing iri: {0}", ex, ex.Message)))(ex);
+                return false;
+            }
+        }
     }
 }

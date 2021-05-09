@@ -17,13 +17,13 @@ namespace Bam.Ion
         Object,
 
         /// <summary>
-        /// A collection list or array of values.
+        /// A collection, list or array of values.
         /// </summary>
         Collection,
 
         /// <summary>
         /// A leaf node.
         /// </summary>
-        Data
+        Value
     }
 }

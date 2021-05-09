@@ -8,24 +8,29 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonLink : WebLink, IIonLink, IJsonable
+    public class IonLink : IonValueObject, IIonLink, IJsonable
     {
-        public IonLink() { }
+        WebLink webLink;
 
-        public IonLink(string name, string relationType, Iri target)
+        public IonLink() 
         {
-            this.Name = name;
-            this.RelationType = relationType;
-            this.Target = target;
+            this.webLink = new WebLink();
         }
 
-        public string Name { get; set; }
+        public IonLink(string relationType, Iri target)
+        {
+            this.webLink = new WebLink
+            {
+                RelationType = relationType,
+                Target = target
+            };
+        }
 
         [JsonProperty("href")]
         public Iri Href 
         {
-            get => base.Target;
-            set => base.Target = value;
+            get => webLink.Target;
+            set => webLink.Target = value;
         }
 
         public string ToJson()
@@ -35,17 +40,45 @@ namespace Bam.Ion
 
         public string ToJson(bool pretty)
         {
-            return new Dictionary<string, object>
+            Dictionary<string, object> toSerialize = new Dictionary<string, object>();
+
+            foreach (string key in SupportingMembers.Keys)
             {
-                { "name", Name },
-                { RelationType, new { href = Href } }
-            }.ToJson(pretty)
+                toSerialize.Add(key, SupportingMembers[key]);
+            }
+
+            toSerialize.Add(webLink.RelationType, new { href = Href });
+
+            return toSerialize.ToJson(pretty);
 ;       }
 
         public static IonLink Read(string json, string nameKey, string relationTypeKey)
         {
             Dictionary<string, object> parsed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-            return new IonLink(parsed[nameKey].ToString(), parsed[relationTypeKey].ToString(), parsed["href"].ToString());
+            IonLink ionLInk = new IonLink(parsed[relationTypeKey].ToString(), parsed["href"].ToString());
+            ionLInk.AddSupportingMember("name", parsed[nameKey].ToString());
+            return ionLInk;
+        }
+
+        public static bool IsValid(string json)
+        {
+            return IsValid(json, out IonLink ignore);
+        }
+
+        public static bool IsValid(string json, out IonLink ionLink)
+        {
+            ionLink = new IonLink();
+            Dictionary<string, object> keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+            if (keyValuePairs.ContainsKey("href"))
+            {
+                string url = (string)keyValuePairs["href"];
+                if (Iri.IsIri(url, out Iri iri))
+                {
+                    ionLink.Href = iri;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Bam.Net;
 using System.Collections;
 using System.Reflection;
+using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {
@@ -160,6 +161,10 @@ namespace Bam.Ion
             this.SetMemberDictionary();
         }
 
+        [YamlIgnore]
+        [JsonIgnore]
+        public string SourceJson { get; internal set; }
+
         public Dictionary<string, object> ToDictionary()
         {
             Dictionary<string, object> dictionary = new Dictionary<string, object>();
@@ -240,6 +245,17 @@ namespace Bam.Ion
                     return _memberDictionary[camelCase];
                 }
                 return null;
+            }
+            set
+            {
+                if (_memberDictionary.ContainsKey(name))
+                {
+                    _memberDictionary[name] = value;
+                }
+                else
+                {
+                    _memberDictionary.Add(name, value);
+                }
             }
         }
 
@@ -356,7 +372,7 @@ namespace Bam.Ion
             {
                 members.Add(keyValuePair);
             }
-            return new IonValueObject(members);
+            return new IonValueObject(members) { SourceJson = json };
         }
 
         public static IonValueObject<T> ReadValue<T>(string json)
@@ -378,7 +394,7 @@ namespace Bam.Ion
                 }              
             }
 
-            IonValueObject<T> result = new IonValueObject<T>(members);
+            IonValueObject<T> result = new IonValueObject<T>(members) { SourceJson = json };
             result.SetMemberDictionary();
             result.Value = result.ToInstance();
             result.AddSupportingMembers(supportingMembers);
