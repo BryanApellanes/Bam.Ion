@@ -160,6 +160,16 @@ namespace Bam.Ion
             this.SetMemberDictionary();
         }
 
+        public Dictionary<string, object> ToDictionary()
+        {
+            Dictionary<string, object> dictionary = new Dictionary<string, object>();
+            foreach(IonMember ionMember in _memberList)
+            {
+                dictionary.Add(ionMember.Name, ionMember.Value);
+            }
+            return dictionary;
+        }
+
         public T ToInstance<T>()
         {
             ConstructorInfo ctor = typeof(T).GetConstructor(Type.EmptyTypes);
@@ -247,6 +257,10 @@ namespace Bam.Ion
                     if (!IonValueTypes.All.Contains(typeOfValue))
                     {
                         this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
+                    }
+                    else if (typeOfValue == typeof(string) && ((string)_value).TryFromJson(out Dictionary<string, object> result))
+                    {
+                        this.Members = IonMember.ListFromDictionary(result).ToList();
                     }
                 }
             }

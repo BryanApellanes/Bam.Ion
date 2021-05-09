@@ -147,6 +147,14 @@ namespace Bam.Ion
             }
         }
 
+        public static IEnumerable<IonMember> ListFromDictionary(Dictionary<string, object> members)
+        {
+            foreach(string key in members.Keys)
+            {
+                yield return new IonMember(key, members[key]);
+            }
+        }
+
         internal static Dictionary<string, PropertyInfo> GetPropertyDictionary(Type type)
         {
             Dictionary<string, PropertyInfo> results = new Dictionary<string, PropertyInfo>();

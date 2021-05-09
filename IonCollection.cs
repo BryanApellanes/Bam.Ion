@@ -14,21 +14,32 @@ namespace Bam.Ion
 {    
     public class IonCollection : IonValueObject, IJsonable, IIonJsonable, IEnumerable, IEnumerable<IonValueObject>
     {
-        private List<IonValueObject> _innerList;
+        private List<JToken> _jTokens;
+        private List<IonValueObject> _ionValueObjectList;
         private Dictionary<string, object> _metaData;
 
         public IonCollection()
         {
-            _innerList = new List<IonValueObject>();
+            _jTokens = new List<JToken>();
+            _ionValueObjectList = new List<IonValueObject>();
             _metaData = new Dictionary<string, object>();
-            Value = _innerList;
+            Value = _ionValueObjectList;
         }
 
         public IonCollection(List<IonValueObject> ionValues) 
         {
-            _innerList = ionValues;
+            _jTokens = new List<JToken>();
+            _ionValueObjectList = ionValues;
             _metaData = new Dictionary<string, object>();
-            Value = _innerList;
+            Value = _ionValueObjectList;
+        }
+
+        public IonCollection(List<JToken> jTokens)
+        {
+            _jTokens = jTokens;
+            _ionValueObjectList = jTokens.Select(jt=> new IonValueObject { Value = jt }).ToList();
+            _metaData = new Dictionary<string, object>();
+            Value = _ionValueObjectList;
         }
 
         [JsonIgnore]
@@ -39,26 +50,26 @@ namespace Bam.Ion
 
         public new List<IonValueObject> Value
         {
-            get => _innerList;
+            get => _ionValueObjectList;
             set
             {
-                _innerList = value;
+                _ionValueObjectList = value;
             }
         }
 
         IEnumerator<IonValueObject> IEnumerable<IonValueObject>.GetEnumerator()
         {
-            return _innerList.GetEnumerator();
+            return _ionValueObjectList.GetEnumerator();
         }
 
         public virtual IEnumerator GetEnumerator()
         {
-            return _innerList.GetEnumerator();
+            return _ionValueObjectList.GetEnumerator();
         }
 
         public virtual void Add(IonValueObject ionValueObject)
         {
-            _innerList.Add(ionValueObject);
+            _ionValueObjectList.Add(ionValueObject);
         }
         
         public virtual void Add<T>(string json)
@@ -68,17 +79,17 @@ namespace Bam.Ion
 
         public virtual void Add<T>(IonValueObject<T> ionValueObject)
         {
-            _innerList.Add(ionValueObject);
+            _ionValueObjectList.Add(ionValueObject);
         }
 
         public virtual bool Contains(object value)
         {
-            return _innerList.Contains(value);
+            return _ionValueObjectList.Contains(value);
         }
 
         [YamlIgnore]
         [JsonIgnore]
-        public int Count => _innerList.Count;
+        public int Count => _ionValueObjectList.Count;
 
         [YamlIgnore]
         [JsonIgnore]
@@ -86,9 +97,13 @@ namespace Bam.Ion
         {
             get
             {
-                return _innerList[index];
+                return _ionValueObjectList[index];
             }
         }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public string SourceJson { get; set; }
 
         public override string ToJson()
         {
@@ -107,32 +122,38 @@ namespace Bam.Ion
 
         public override string ToIonJson(bool pretty, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
         {
-            Dictionary<string, object> toBeSerialized = new Dictionary<string, object>
+            List<object> value = new List<object>();
+            value.AddRange(_ionValueObjectList.Select(iv => iv.ToDictionary()));
+            Dictionary<string, object> toBeSerialized = new Dictionary<string, object>();
+            foreach (string key in _metaData.Keys)
             {
-                { "value", _innerList }
-            };
+                toBeSerialized.Add(key, _metaData[key]);
+            }
+
+            toBeSerialized.Add("value", value);
+            
             return toBeSerialized.ToJson(pretty, nullValueHandling);
         }
 
         public IonCollection AddElementMetaData(string name, object value)
         {
-            _metaData.Add(name, Value);
+            _metaData.Add(name, value);
             return this;
         }
 
         public static IonCollection Read(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-            List<IonValueObject> ionValues = new List<IonValueObject>();
+            List<JToken> jTokens = new List<JToken>();
             if (dictionary.ContainsKey("value"))
             {
                 JArray arrayValue = dictionary["value"] as JArray;
                 foreach(JToken token in arrayValue)
                 {
-                    ionValues.Add(token.ToJson());
+                    jTokens.Add(token);
                 }
             }
-            IonCollection ionCollection = new IonCollection(ionValues);
+            IonCollection ionCollection = new IonCollection(jTokens);
 
             foreach(string key in dictionary.Keys)
             {
@@ -141,15 +162,15 @@ namespace Bam.Ion
                     ionCollection.AddElementMetaData(key, dictionary[key]);
                 }
             }
-
+            ionCollection.SourceJson = json;
             return ionCollection;
         }
 
         protected void RemoveObject(IonValueObject ionObject)
         {
-            if (_innerList.Contains(ionObject))
+            if (_ionValueObjectList.Contains(ionObject))
             {
-                _innerList.Remove(ionObject);
+                _ionValueObjectList.Remove(ionObject);
             }
         }
     }
