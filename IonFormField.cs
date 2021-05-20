@@ -12,12 +12,19 @@ namespace Bam.Ion
     {
         public IonFormField() : base() { }
         public IonFormField(List<IonMember> members) : base(members) { }
+        public IonFormField(params IonMember[] members) : base(members) { }
+
+        public IonFormField(string name, params IonMember[] members) : this(members)
+        {
+            this.Name = name;
+        }
 
         public string Name
         {
             get
             {
-                return (string)this["name"].Value;
+                IonMember nameMember = this["name"];
+                return nameMember.Value as string;
             }
             set
             {
@@ -25,7 +32,59 @@ namespace Bam.Ion
             }
         }
 
+        public static HashSet<string> RegisteredMembers
+        {
+            get => IonFormFieldMember.RegisteredNames;
+        }
+
+        public string Desc()
+        {
+            return this["desc"]?.Value?.ToString();
+        }
+
+        public IonFormField Desc(string value)
+        {
+            this["desc"].Value = value;
+            return this;
+        }
+
+        public object EForm()
+        {
+            return this["eform"].Value;
+        }
+
+        public bool Enabled()
+        {
+            return (bool)this["enabled"].Value?.ToString()?.IsAffirmative();
+        } 
+
+        public IonFormField Enabled(bool enabled)
+        {
+            this["enabled"].Value = enabled;
+            return this;
+        }
+
         public new IonFormFieldOption Value { get; set; }
+
+        public override IonMember this[string memberName] 
+        {
+            get
+            {
+                IonMember baseMember = base[memberName];
+                if (IonFormFieldMember.RegisteredNames.Contains(memberName))
+                {
+                    if(IonFormFieldMember.RegisteredFormFieldIsValid(memberName, baseMember) != true)
+                    {
+                        return null;
+                    }
+                }
+                return baseMember;
+            }
+            set
+            {
+                base[memberName] = value;
+            }
+        }
 
         public static IonFormField Read(string json)
         {
@@ -36,41 +95,6 @@ namespace Bam.Ion
                 members.Add(keyValuePair);
             }
             return new IonFormField(members) { SourceJson = json };
-        }
-
-        static HashSet<string> _formFieldMembers;
-        static object _formFieldMembersLock = new object();
-
-        public static HashSet<string> FormFieldMembers
-        {
-            get
-            {
-                return _formFieldMembersLock.DoubleCheckLock(ref _formFieldMembers, () => new HashSet<string>(new[]
-                {
-                    "desc",
-                    "eform",
-                    "enabled",
-                    "etype",
-                    "form",
-                    "label",
-                    "max",
-                    "maxLength",
-                    "maxsize",
-                    "min",
-                    "minLength",
-                    "minsize",
-                    "mutable",
-                    "name",
-                    "options",
-                    "pattern",
-                    "placeHolder",
-                    "required",
-                    "secret",
-                    "type",
-                    "value",
-                    "visible",
-                }));
-            }
         }
 
         public static bool IsValid(string json)
@@ -97,7 +121,7 @@ Each Ion Form Field within an Ion Form’s value array MUST have a unique name v
             {
                 foreach (string key in keyValuePairs.Keys)
                 {
-                    if (!FormFieldMembers.Contains(key))
+                    if (!RegisteredMembers.Contains(key))
                     {
                         allFieldsAreFormFieldMembers = false;
                     }

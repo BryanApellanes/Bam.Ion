@@ -144,19 +144,26 @@ namespace Bam.Ion
         public IonValueObject()
         {
             this._memberList = new List<IonMember>();
+            this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = new Dictionary<string, object>();
         }
 
         public IonValueObject(List<IonMember> members)
         {
             this._memberList = members;
+            this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = new Dictionary<string, object>();
             this.SetMemberDictionary();
+        }
+
+        public IonValueObject(params IonMember[] members) : this(members.ToList())
+        {
         }
 
         public IonValueObject(List<IonMember> ionMembers, Dictionary<string, object> contextData) : this()
         {
             this._memberList = ionMembers;
+            this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = contextData;
             this.SetMemberDictionary();
         }
@@ -177,18 +184,7 @@ namespace Bam.Ion
 
         public T ToInstance<T>()
         {
-            ConstructorInfo ctor = typeof(T).GetConstructor(Type.EmptyTypes);
-            if (ctor == null)
-            {
-                throw new InvalidOperationException($"The specified type ({typeof(T).AssemblyQualifiedName}) does not have a parameterless constructor.");
-            }
-            T instance = (T)ctor.Invoke(null);
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            foreach (IonMember ionMember in this)
-            {
-                ionMember.SetProperty(instance);
-            }
-            return instance;
+            return IonExtensions.ToInstance<T>(this);
         }
 
         public override bool Equals(object obj)
@@ -230,7 +226,7 @@ namespace Bam.Ion
             set;
         }
 
-        public IonMember this[string name]
+        public virtual IonMember this[string name]
         {
             get
             {
@@ -244,7 +240,10 @@ namespace Bam.Ion
                 {
                     return _memberDictionary[camelCase];
                 }
-                return null;
+                IonMember result = new IonMember { Name = name };
+                _memberDictionary.Add(camelCase, result);
+                _memberDictionary.Add(pascalCase, result);
+                return result;
             }
             set
             {

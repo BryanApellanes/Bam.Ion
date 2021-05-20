@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CsQuery.StringScanner.Patterns;
+using YamlDotNet.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Bam.Ion
 {
@@ -77,7 +79,7 @@ namespace Bam.Ion
 
         public static implicit operator IonMember(System.Collections.Generic.KeyValuePair<string, object> keyValuePair)
         {
-            return new IonMember { Name = keyValuePair.Key, Value = keyValuePair.Value };
+            return new IonMember { Name = keyValuePair.Key, Value = keyValuePair.Value, SourceValue = keyValuePair.Value };
         }
 
         public static implicit operator string(IonMember ionMember)
@@ -89,21 +91,24 @@ namespace Bam.Ion
         {
             if(value.TryFromJson<IonMember>(out IonMember result))
             {
+                result.SourceValue = result.Value;
                 return result;
             }
-            return new IonMember { Name = "value", Value = value };
+            return new IonMember { Name = "value", Value = value, SourceValue = value };
         }
 
         public IonMember(object value)
         {
             this.Name = "value";
             this.Value = value;
+            this.SourceValue = value;
         }
 
         public IonMember(string name, object value)
         {
             this.Name = name;
             this.Value = value;
+            this.SourceValue = value;
         }
 
         public string ToJson(bool pretty = false, NullValueHandling nullValueHandling = NullValueHandling.Ignore)
@@ -117,12 +122,30 @@ namespace Bam.Ion
         
         public string Name { get; set; }
 
-        public object Value { get; set; }
+        public virtual object Value { get; set; }
+
+        [YamlIgnore]
+        [JsonIgnore]
+        public object SourceValue { get; set; }
 
         public override string ToString()
         {
             return $"\"{Name}\": {Value?.ToJson()}";
         }
+
+        private static Dictionary<string, Func<object, IonValueObject>> _registeredMemberReaders = new Dictionary<string, Func<object, IonValueObject>>()
+        {
+            {"eform", (obj) =>
+                {
+                    string stringValue = obj?.ToString();
+                    if (stringValue.IsJson())
+                    {
+                        return IonValueObject.ReadValue(stringValue);
+                    }
+                    return new IonValueObject { Value = obj };
+                }
+            }
+        };
 
         /// <summary>
         /// Sets the property on the specified instance to the value of the current IonMember where the name matches the name of the current IonMember.
@@ -136,6 +159,25 @@ namespace Bam.Ion
             {
                 propertyInfos[Name].SetValue(instance, Value);
             }
+        }
+
+        public static IEnumerable<IonMember> ListFromObject(object value)
+        {
+            if(value is string stringValue)
+            {
+                if (stringValue.IsJson())
+                {
+                    return ListFromJson(stringValue);
+                }
+            }
+            if(value is IonMember ionMemberValue)
+            {
+                if (ionMemberValue.Value is JObject jobjectValue)
+                {
+                    return ListFromJson(jobjectValue.ToString());
+                }
+            }
+            return ListFromJson(JsonConvert.SerializeObject(value));
         }
 
         public static IEnumerable<IonMember> ListFromJson(string json)

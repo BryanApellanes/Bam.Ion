@@ -58,7 +58,17 @@ namespace Bam.Ion
             return IsValid(json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames);
         }
 
+        public static bool IsValid(string json, out IonFormValidationResult ionFormValidationResult)
+        {
+            return IsValid(json, out Dictionary<string, List<IonFormField>> ignore, out ionFormValidationResult);
+        }
+
         public static bool IsValid(string json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames)
+        {
+            return IsValid(json, out formFieldsWithDuplicateNames, out IonFormValidationResult ignore);
+        }
+
+        public static bool IsValid(string json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames, out IonFormValidationResult ionFormValidationResult)
         {
             /**
              * 6.1. Form Structure
@@ -135,6 +145,16 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
                     formFieldsWithDuplicateNames[duplicateName].AddRange(formFields.Where(ff => ff.Name.Equals(duplicateName)));
                 }                
             }
+            ionFormValidationResult = new IonFormValidationResult
+            {
+                SourceJson = json,
+                IsLInk = isLink,
+                HasRelArray = hasRelArray,
+                HasValueArray = hasValueArray,
+                HasOnlyFormFields = valueHasOnlyFormFields,
+                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
+                FormFieldsWithDuplicateNames = formFieldsWithDuplicateNames
+            };
             return isLink && hasRelArray && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
         }
     }
