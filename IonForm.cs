@@ -155,6 +155,7 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
                 FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
                 FormFieldsWithDuplicateNames = formFieldsWithDuplicateNames
             };
+            // TODO: refactor as described
             // HASRELARRAY needs to be evaluated as the EITHER statement above
             // (hasRelarray || IsChildOfFormField named "form")
             // the problem is we don't have the parent from this context
