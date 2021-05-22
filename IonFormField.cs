@@ -19,6 +19,9 @@ namespace Bam.Ion
             this.Name = name;
         }
 
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
         public string Name
         {
             get
@@ -32,10 +35,14 @@ namespace Bam.Ion
             }
         }
 
+        /// <summary>
+        /// All registered form field members.
+        /// </summary>
         public static HashSet<string> RegisteredMembers
         {
             get => IonFormFieldMember.RegisteredNames;
         }
+
 
         public string Desc()
         {
@@ -73,7 +80,7 @@ namespace Bam.Ion
                 IonMember baseMember = base[memberName];
                 if (IonFormFieldMember.RegisteredNames.Contains(memberName))
                 {
-                    if(IonFormFieldMember.RegisteredFormFieldIsValid(memberName, baseMember) != true)
+                    if (IonFormFieldMember.RegisteredFormFieldIsValid(memberName, baseMember) != true)
                     {
                         return null;
                     }
@@ -112,11 +119,10 @@ Each Ion Form Field within an Ion Form’s value array MUST have a unique name v
              * 
              */
 
-            bool hasNameMember = false;
             bool allFieldsAreFormFieldMembers = true;
             formField = null;
             Dictionary<string, object> keyValuePairs = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
-            hasNameMember = keyValuePairs.ContainsKey("name");
+            bool hasNameMember = keyValuePairs.ContainsKey("name");
             if (hasNameMember)
             {
                 foreach (string key in keyValuePairs.Keys)

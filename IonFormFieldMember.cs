@@ -106,6 +106,10 @@ namespace Bam.Ion
                 {
                     if (RegisteredFormFieldMemberTypes.ContainsKey("eform"))
                     {
+                        if(val.Value == null)
+                        {
+                            return null;
+                        }
                         IonFormFieldMember formField = RegisteredFormFieldMemberTypes["eform"].Construct<IonFormFieldMember>(val.Value);
                         if (!formField.IsValid())
                         {
@@ -163,7 +167,7 @@ namespace Bam.Ion
         }
 
         /// <summary>
-        /// Gets or sets the object that Value was set to.
+        /// Gets or sets the object the Value property was set to.
         /// </summary>
         protected object ObjectValue { get; set; }
 
@@ -173,10 +177,10 @@ namespace Bam.Ion
         protected JObject JObjectValue { get; set; }
 
         /// <summary>
-        /// Either the original json parsed into ReadValue or, SetValue serialized if this instance 
+        /// Gets either the original json parsed into ReadValue or, SetValue serialized if this instance 
         /// was not originally read from json.
         /// </summary>
-        protected string SourceJson { get; set; }
+        protected string SourceJson { get; private set; }
 
         protected bool JObjectHasMember(string memberName)
         {

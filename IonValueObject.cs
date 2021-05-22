@@ -8,6 +8,7 @@ using Bam.Net;
 using System.Collections;
 using System.Reflection;
 using YamlDotNet.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace Bam.Ion
 {
@@ -100,6 +101,11 @@ namespace Bam.Ion
             return instance;
         }
 
+        public override int GetHashCode()
+        {
+            return this.ToJson(false).GetHashCode();
+        }
+
         public override bool Equals(object obj)
         {
             if (obj == null && Value == null)
@@ -153,7 +159,7 @@ namespace Bam.Ion
             this._memberList = members;
             this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = new Dictionary<string, object>();
-            this.SetMemberDictionary();
+            this.Initialize();
         }
 
         public IonValueObject(params IonMember[] members) : this(members.ToList())
@@ -165,7 +171,7 @@ namespace Bam.Ion
             this._memberList = ionMembers;
             this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = contextData;
-            this.SetMemberDictionary();
+            this.Initialize();
         }
 
         [YamlIgnore]
@@ -217,6 +223,7 @@ namespace Bam.Ion
             protected set
             {
                 _memberList = value;
+                Initialize();
             }
         }
 
@@ -224,6 +231,29 @@ namespace Bam.Ion
         {
             get;
             set;
+        }
+
+        public IonValueObject ValueOf(string memberName)
+        {
+            return new IonValueObject(IonMember.ListFromObject(this[memberName]?.Value).ToArray());
+        }
+
+        public IonMember MemberOf(string memberName)
+        {
+            return this[memberName];
+        }
+
+        public IonValueObject AddMember(string name, object value)
+        {
+            return AddMember(new IonMember(name, value));
+        }
+
+        public IonValueObject AddMember(IonMember ionMember)
+        {
+            ionMember.Parent = this;
+            _memberList.Add(ionMember);
+            Initialize();
+            return this;
         }
 
         public virtual IonMember this[string name]
@@ -363,6 +393,11 @@ namespace Bam.Ion
             return SetSupportingMember("assemblyQualifiedName", type.AssemblyQualifiedName);
         }
 
+        /// <summary>
+        /// Reads the specified json as an IonValueObject.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static IonValueObject ReadValue(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
@@ -374,6 +409,12 @@ namespace Bam.Ion
             return new IonValueObject(members) { SourceJson = json };
         }
 
+        /// <summary>
+        /// Reads the specified json as an IonValueObject.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static IonValueObject<T> ReadValue<T>(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
@@ -394,7 +435,7 @@ namespace Bam.Ion
             }
 
             IonValueObject<T> result = new IonValueObject<T>(members) { SourceJson = json };
-            result.SetMemberDictionary();
+            result.Initialize();
             result.Value = result.ToInstance();
             result.AddSupportingMembers(supportingMembers);
             return result;
@@ -417,16 +458,18 @@ namespace Bam.Ion
             }
         }
 
-        private void SetMemberDictionary()
+        private void Initialize()
         {
-            _memberDictionary = new Dictionary<string, IonMember>();
+            Dictionary<string, IonMember> temp = new Dictionary<string, IonMember>();
             foreach (IonMember ionMember in _memberList)
             {
+                ionMember.Parent = this;
                 string camelCase = ionMember.Name.CamelCase();
                 string pascalCase = ionMember.Name.PascalCase();
-                _memberDictionary.Add(camelCase, ionMember);
-                _memberDictionary.Add(pascalCase, ionMember);
+                temp.Add(camelCase, ionMember);
+                temp.Add(pascalCase, ionMember);
             }
+            _memberDictionary = temp;
         }
 
         public IEnumerator<IonMember> GetEnumerator()
@@ -449,7 +492,24 @@ namespace Bam.Ion
             Dictionary<string, object> data = new Dictionary<string, object>();
             if (this.Value != null)
             {
-                data = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(Value));
+                if (this.Value is string stringValue)
+                {
+                    if (stringValue.IsJson(out JObject jObject))
+                    {
+                        data = jObject.ToObject<Dictionary<string, object>>();
+                    }
+                    else
+                    {
+                        data = new Dictionary<string, object>()
+                        {
+                            {"value", stringValue}
+                        };
+                    }
+                }
+                else
+                {
+                    data = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(Value));
+                }
             }
 
             foreach (IonMember member in _memberList)

@@ -31,6 +31,7 @@ namespace Bam.Ion
         }
 
         public new T Value { get; set; }
+
         public override bool Equals(object obj)
         {
             if (obj == null && Value == null)
@@ -62,7 +63,7 @@ namespace Bam.Ion
         }
     }
 
-    public class IonMember
+    public class IonMember 
     {
         static IonMember()
         {
@@ -120,6 +121,24 @@ namespace Bam.Ion
             return $"{{\"{Name}\": {Value?.ToJson(pretty, nullValueHandling)}}}";
         }
         
+        public T ValueAs<T>() where T : class
+        {
+            if(Value == null)
+            {
+                return default;
+            }
+            T typedValue = Value as T;
+            if(typedValue == null)
+            {
+                if(Value is IJsonable jsonable)
+                {
+                    return JsonConvert.DeserializeObject<T>(jsonable.ToJson());
+                }
+            }
+
+            return typedValue;
+        }
+
         public string Name { get; set; }
 
         public virtual object Value { get; set; }
@@ -127,6 +146,29 @@ namespace Bam.Ion
         [YamlIgnore]
         [JsonIgnore]
         public object SourceValue { get; set; }
+
+        public IonValueObject Parent
+        {
+            get;
+            internal set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating wether this member is a child of its parent
+        /// with the specified member name.
+        /// </summary>
+        /// <param name="memberNameToCheck"></param>
+        /// <returns></returns>
+        public bool IsChildNamed(string memberNameToCheck)
+        {
+            if(Parent == null)
+            {
+                return false;
+            }
+
+            IonMember namedMember = Parent[memberNameToCheck];
+            return namedMember.Equals(this);
+        }
 
         public override string ToString()
         {
@@ -246,12 +288,23 @@ namespace Bam.Ion
             return Value.GetHashCode() + Name.GetHashCode();
         }
 
-        public static IEnumerable<IonMember> GetMemberList(object instance)
+        /// <summary>
+        /// Get a list of IonMembers representing the specified instance.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        public static IEnumerable<IonMember> ListFor(object instance)
         {
-            return GetMemberList(instance, (propertyInfo) => true);
+            return ListFor(instance, (propertyInfo) => true);
         }
 
-        public static IEnumerable<IonMember> GetMemberList(object instance, Func<PropertyInfo, bool> propertyFilter)
+        /// <summary>
+        /// Get a list of IonMembers representing the specified instance.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="propertyFilter"></param>
+        /// <returns></returns>
+        public static IEnumerable<IonMember> ListFor(object instance, Func<PropertyInfo, bool> propertyFilter)
         {
             Args.ThrowIfNull(instance);
             Args.ThrowIfNull(propertyFilter);

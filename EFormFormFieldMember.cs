@@ -45,42 +45,39 @@ namespace Bam.Ion
             {
                 return false;
             }
-            if (Value is JObject jObject) 
+            bool hasRequiredMembers = false;
+            if (Value is JObject jObject)
             {
-                string typeValue = (string)jObject["type"];
-                if (string.IsNullOrEmpty(typeValue))
-                {
-                    return false;
-                }
-                if(!"array".Equals(typeValue) && !"set".Equals(typeValue))
-                {
-                    return false;
-                }
-                string etypeValue = (string)jObject["etype"];
-                if(etypeValue != null && !"object".Equals(etypeValue))
-                {
-                    return false;
-                }
-                return true;
+                hasRequiredMembers = HasRequiredMembers(jObject);
             }
-            if(Value is Dictionary<string, object> dictionary)
+            else if (JObjectValue != null)
             {
-                string typeValue = (string)dictionary["type"];
-                if (string.IsNullOrEmpty(typeValue))
-                {
-                    return false;
-                }
-                if (!"array".Equals(typeValue) && !"set".Equals(typeValue))
-                {
-                    return false;
-                }
-                string etypeValue = (string)dictionary["etype"];
-                if (etypeValue != null && !"object".Equals(etypeValue))
-                {
-                    return false;
-                }
-                return true;
+                hasRequiredMembers = HasRequiredMembers(JObjectValue);
             }
+            return hasRequiredMembers && IsForm();
+        }
+
+        protected bool HasRequiredMembers(JObject jObject)
+        {
+            string typeValue = (string)jObject["type"];
+            if (string.IsNullOrEmpty(typeValue))
+            {
+                return false;
+            }
+            if (!"array".Equals(typeValue) && !"set".Equals(typeValue))
+            {
+                return false;
+            }
+            string etypeValue = (string)jObject["etype"];
+            if (etypeValue != null && !"object".Equals(etypeValue))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        protected bool IsForm()
+        {
             bool isForm = false;
             if (Value is IIonJsonable ionJsonable)
             {
