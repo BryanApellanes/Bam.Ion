@@ -139,6 +139,22 @@ namespace Bam.Ion
             return typedValue;
         }
 
+        public IonValueObject ValueObject()
+        {
+            if(Value == null)
+            {
+                return default;
+            }
+
+            if(Value is IJsonable jsonable)
+            {
+                return IonValueObject.ReadValue(jsonable.ToJson());
+            }
+
+            return IonValueObject.ReadValue(JsonConvert.SerializeObject(Value));
+
+        }
+
         public string Name { get; set; }
 
         public virtual object Value { get; set; }

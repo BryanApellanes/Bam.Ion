@@ -134,7 +134,7 @@ Each Ion Form Field within an Ion Form’s value array MUST have a unique name v
                 }
             }
 
-            if(hasNameMember && allFieldsAreFormFieldMembers)
+            if (hasNameMember && allFieldsAreFormFieldMembers)
             {
                 formField = IonFormField.Read(json);
                 return true;

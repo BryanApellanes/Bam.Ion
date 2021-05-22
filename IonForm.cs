@@ -71,22 +71,72 @@ namespace Bam.Ion
             return isValid;
         }
 
+        public static bool IsValid(IonMember ionMember)
+        {
+            return IsValid(ionMember, out IonFormValidationResult formFieldsWithDuplicateNames);
+        }
+
+        public static bool IsValid(IonMember ionMember, out IonFormValidationResult ionFormValidationResult)
+        {
+
+            /**
+             * 6.1. Form Structure
+
+Ion parsers MUST identify any JSON object as an Ion Form if the object matches the following conditions:
+
+    Either:
+
+        The JSON object is discovered to be an Ion Link as defined in Section 4 AND its meta member has 
+            an internal rel member that contains one of the octet sequences form, edit-form, create-form or query-form, OR:
+
+        The JSON object is a member named form inside an Ion Form Field.
+
+    The JSON object has a value array member with a value that is not null or empty.
+
+    The JSON object’s value array contains one or more Ion Form Field objects.
+
+    The JSON object’s value array does not contain elements that are not Ion Form Field objects.
+
+             */
+            ionFormValidationResult = new IonFormValidationResult();
+            if (ionMember == null)
+            {
+                return false;
+            }
+            if(ionMember.Value == null)
+            {
+                return false;
+            }
+            bool isLink = Ion.IsLink(ionMember.Value.ToJson());
+            bool valueHasOnlyFormFields = true;
+            bool valueHasFormFieldsWithUniqueNames = true;
+
+            IonValueObject ionValue = ionMember.ValueObject();
+            bool hasRelArray = HasValidRelArray(ionValue);
+            bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
+
+            IonFormFieldValidationResult formFieldValidationResult = IonFormFieldValidationResult.ValidateFormFields(jArrayValue);
+            ionFormValidationResult = new IonFormValidationResult
+            {
+                IsLInk = isLink,
+                HasRelArray = hasRelArray,
+                HasValueArray = hasValueArray,
+                HasOnlyFormFields = valueHasOnlyFormFields,
+                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
+                FormFieldsWithDuplicateNames = formFieldValidationResult.FormFieldsWithDuplicateNames
+            };
+
+            // TODO: ensure ionMember is a member of an IonFormField 
+            // spec says - The JSON object is a member named form inside an Ion Form Field.
+            return isLink && (hasRelArray || ionMember.IsChildNamed("form")) && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
+        }
+
         public static bool IsValid(string json)
         {
-            return IsValid(json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames);
+            return IsValid(json, out IonFormValidationResult ignore);
         }
 
         public static bool IsValid(string json, out IonFormValidationResult ionFormValidationResult)
-        {
-            return IsValid(json, out Dictionary<string, List<IonFormField>> ignore, out ionFormValidationResult);
-        }
-
-        public static bool IsValid(string json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames)
-        {
-            return IsValid(json, out formFieldsWithDuplicateNames, out IonFormValidationResult ignore);
-        }
-
-        public static bool IsValid(string json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames, out IonFormValidationResult ionFormValidationResult)
         {
             /**
              * 6.1. Form Structure
@@ -110,13 +160,35 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
             bool isLink = Ion.IsLink(json);
             bool valueHasOnlyFormFields = true;
             bool valueHasFormFieldsWithUniqueNames = true;
-            
-            HashSet<IonFormField> formFields = new HashSet<IonFormField>();
 
             IonValueObject ionValue = IonValueObject.ReadValue(json);
             bool hasRelArray = HasValidRelArray(ionValue);
             bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
+                        
+            IonFormFieldValidationResult formFieldValidationResult = IonFormFieldValidationResult.ValidateFormFields(jArrayValue);
+            ionFormValidationResult = new IonFormValidationResult
+            {
+                SourceJson = json,
+                IsLInk = isLink,
+                HasRelArray = hasRelArray,
+                HasValueArray = hasValueArray,
+                HasOnlyFormFields = valueHasOnlyFormFields,
+                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
+                FormFieldsWithDuplicateNames = formFieldValidationResult.FormFieldsWithDuplicateNames
+            };
+            // TODO: refactor as described
+            // HASRELARRAY needs to be evaluated as the EITHER statement above
+            // (hasRelarray || IsChildOfFormField named "form")
+            // the problem is we don't have the parent from this context
+            // THIS WILL NEED TO BE REFACTORED SOMEHOW, ADDED IonMember.Parent to help but 
+            // this needs more analysis
+            return isLink && hasRelArray && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
+        }
 
+        private static Dictionary<string, List<IonFormField>> ValueHasValidFormFields(ref bool valueHasOnlyFormFields, ref bool valueHasFormFieldsWithUniqueNames, JArray jArrayValue)
+        {
+            Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames;
+            HashSet<IonFormField> formFields = new HashSet<IonFormField>();
             formFieldsWithDuplicateNames = new Dictionary<string, List<IonFormField>>();
             HashSet<string> duplicateNames = new HashSet<string>();
             foreach (JToken jToken in jArrayValue)
@@ -145,23 +217,8 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
                     formFieldsWithDuplicateNames[duplicateName].AddRange(formFields.Where(ff => ff.Name.Equals(duplicateName)));
                 }
             }
-            ionFormValidationResult = new IonFormValidationResult
-            {
-                SourceJson = json,
-                IsLInk = isLink,
-                HasRelArray = hasRelArray,
-                HasValueArray = hasValueArray,
-                HasOnlyFormFields = valueHasOnlyFormFields,
-                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
-                FormFieldsWithDuplicateNames = formFieldsWithDuplicateNames
-            };
-            // TODO: refactor as described
-            // HASRELARRAY needs to be evaluated as the EITHER statement above
-            // (hasRelarray || IsChildOfFormField named "form")
-            // the problem is we don't have the parent from this context
-            // THIS WILL NEED TO BE REFACTORED SOMEHOW, ADDED IonMember.Parent to help but 
-            // this needs more analysis
-            return isLink && hasRelArray && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
+
+            return formFieldsWithDuplicateNames;
         }
 
         private static bool HasValueArray(IonValueObject ionValue, out JArray arrayValue)

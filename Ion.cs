@@ -66,10 +66,5 @@ namespace Bam.Ion
         {
             return IonForm.IsValid(json);
         }
-
-        public static bool IsForm(string json, out Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames)
-        {
-            return IonForm.IsValid(json, out formFieldsWithDuplicateNames);
-        }
     }
 }

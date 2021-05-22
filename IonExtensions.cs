@@ -26,6 +26,25 @@ namespace Bam.Ion
             return instance;
         }
 
+        public static bool IsJsonArray(this string jsonArray)
+        {
+            return IsJsonArray(jsonArray, out JArray ignore);
+        }
+
+        public static bool IsJsonArray(this string jsonArray, out JArray jArray)
+        {
+            try
+            {
+                jArray = JArray.Parse(jsonArray);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                jArray = null;
+                return false;
+            }
+        }
+
         public static bool IsJson(this string json)
         {
             return IsJson(json, out JObject ignore);
