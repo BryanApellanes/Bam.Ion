@@ -78,7 +78,6 @@ namespace Bam.Ion
 
         public static bool IsValid(IonMember ionMember, out IonFormValidationResult ionFormValidationResult)
         {
-
             /**
              * 6.1. Form Structure
 
@@ -176,12 +175,9 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
                 FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
                 FormFieldsWithDuplicateNames = formFieldValidationResult.FormFieldsWithDuplicateNames
             };
-            // TODO: refactor as described
-            // HASRELARRAY needs to be evaluated as the EITHER statement above
-            // (hasRelarray || IsChildOfFormField named "form")
-            // the problem is we don't have the parent from this context
-            // THIS WILL NEED TO BE REFACTORED SOMEHOW, ADDED IonMember.Parent to help but 
-            // this needs more analysis
+            // TODO: change this to return IonFormValidationResult change method name to Validate
+            // re-implement validate as a call to this method 
+            // add property to IonFormValidationResult.Success
             return isLink && hasRelArray && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
         }
 
