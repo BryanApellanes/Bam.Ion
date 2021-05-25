@@ -54,15 +54,15 @@ namespace Bam.Ion
 
         private static HashSet<string> formRelValues = new HashSet<string>(new[] { "form", "edit-form", "create-form", "query-form" });
 
-        public static bool IsValid(object valueToCheck)
+        public static bool IsValid(object formValueToCheck)
         {
-            return IsValid(valueToCheck, out IonValueObject ignore);
+            return IsValid(formValueToCheck, out IonValueObject ignore);
         }
 
-        public static bool IsValid(object valueToCheck, out IonValueObject ionValueObject)
+        public static bool IsValid(object formValueToCheck, out IonValueObject ionValueObject)
         {
-            string json = valueToCheck?.ToJson();
-            bool isValid =  IsValid(json);
+            string json = formValueToCheck?.ToJson();
+            bool isValid =  Validate(json).Success;
             ionValueObject = null;
             if (isValid)
             {
@@ -71,12 +71,7 @@ namespace Bam.Ion
             return isValid;
         }
 
-        public static bool IsValid(IonMember ionMember)
-        {
-            return IsValid(ionMember, out IonFormValidationResult formFieldsWithDuplicateNames);
-        }
-
-        public static bool IsValid(IonMember ionMember, out IonFormValidationResult ionFormValidationResult)
+        public static IonFormValidationResult Validate(IonMember ionMember)
         {
             /**
              * 6.1. Form Structure
@@ -97,45 +92,35 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
     The JSON object’s value array does not contain elements that are not Ion Form Field objects.
 
              */
-            ionFormValidationResult = new IonFormValidationResult();
+            IonFormValidationResult ionFormValidationResult = new IonFormValidationResult();
             if (ionMember == null)
             {
-                return false;
+                return ionFormValidationResult;
             }
             if(ionMember.Value == null)
             {
-                return false;
+                return ionFormValidationResult;
             }
             bool isLink = Ion.IsLink(ionMember.Value.ToJson());
-            bool valueHasOnlyFormFields = true;
-            bool valueHasFormFieldsWithUniqueNames = true;
 
             IonValueObject ionValue = ionMember.ValueObject();
             bool hasRelArray = HasValidRelArray(ionValue);
             bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
 
             IonFormFieldValidationResult formFieldValidationResult = IonFormFieldValidationResult.ValidateFormFields(jArrayValue);
-            ionFormValidationResult = new IonFormValidationResult
+            return new IonFormValidationResult
             {
-                IsLInk = isLink,
+                IsLink = isLink,
                 HasRelArray = hasRelArray,
                 HasValueArray = hasValueArray,
-                HasOnlyFormFields = valueHasOnlyFormFields,
-                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
+                HasOnlyFormFields = formFieldValidationResult.ValueHasOnlyFormFields,
+                FormFieldsHaveUniqueNames = formFieldValidationResult.ValueHasFormFieldsWithUniqueNames,
                 FormFieldsWithDuplicateNames = formFieldValidationResult.FormFieldsWithDuplicateNames
             };
-
-            // TODO: ensure ionMember is a member of an IonFormField 
-            // spec says - The JSON object is a member named form inside an Ion Form Field.
-            return isLink && (hasRelArray || ionMember.IsChildNamed("form")) && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
         }
 
-        public static bool IsValid(string json)
-        {
-            return IsValid(json, out IonFormValidationResult ignore);
-        }
 
-        public static bool IsValid(string json, out IonFormValidationResult ionFormValidationResult)
+        public static IonFormValidationResult Validate(string json)
         {
             /**
              * 6.1. Form Structure
@@ -157,64 +142,22 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
 
              */
             bool isLink = Ion.IsLink(json);
-            bool valueHasOnlyFormFields = true;
-            bool valueHasFormFieldsWithUniqueNames = true;
 
             IonValueObject ionValue = IonValueObject.ReadValue(json);
             bool hasRelArray = HasValidRelArray(ionValue);
             bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
                         
             IonFormFieldValidationResult formFieldValidationResult = IonFormFieldValidationResult.ValidateFormFields(jArrayValue);
-            ionFormValidationResult = new IonFormValidationResult
+            return new IonFormValidationResult
             {
                 SourceJson = json,
-                IsLInk = isLink,
+                IsLink = isLink,
                 HasRelArray = hasRelArray,
                 HasValueArray = hasValueArray,
-                HasOnlyFormFields = valueHasOnlyFormFields,
-                FormFieldsHaveUniqueNames = valueHasFormFieldsWithUniqueNames,
+                HasOnlyFormFields = formFieldValidationResult.ValueHasOnlyFormFields,
+                FormFieldsHaveUniqueNames = formFieldValidationResult.ValueHasFormFieldsWithUniqueNames,
                 FormFieldsWithDuplicateNames = formFieldValidationResult.FormFieldsWithDuplicateNames
             };
-            // TODO: change this to return IonFormValidationResult change method name to Validate
-            // re-implement validate as a call to this method 
-            // add property to IonFormValidationResult.Success
-            return isLink && hasRelArray && hasValueArray && valueHasOnlyFormFields && valueHasFormFieldsWithUniqueNames;
-        }
-
-        private static Dictionary<string, List<IonFormField>> ValueHasValidFormFields(ref bool valueHasOnlyFormFields, ref bool valueHasFormFieldsWithUniqueNames, JArray jArrayValue)
-        {
-            Dictionary<string, List<IonFormField>> formFieldsWithDuplicateNames;
-            HashSet<IonFormField> formFields = new HashSet<IonFormField>();
-            formFieldsWithDuplicateNames = new Dictionary<string, List<IonFormField>>();
-            HashSet<string> duplicateNames = new HashSet<string>();
-            foreach (JToken jToken in jArrayValue)
-            {
-                if (!IonFormField.IsValid(jToken?.ToString(), out IonFormField formField))
-                {
-                    valueHasOnlyFormFields = false;
-                }
-                List<IonFormField> existing = formFields.Where(ff => ff.Name.Equals(formField.Name)).ToList();
-                if (existing.Any())
-                {
-                    duplicateNames.Add(formField.Name);
-
-                    valueHasFormFieldsWithUniqueNames = false;
-                }
-                formFields.Add(formField);
-            }
-            if (duplicateNames.Count > 0)
-            {
-                foreach (string duplicateName in duplicateNames)
-                {
-                    if (!formFieldsWithDuplicateNames.ContainsKey(duplicateName))
-                    {
-                        formFieldsWithDuplicateNames.Add(duplicateName, new List<IonFormField>());
-                    }
-                    formFieldsWithDuplicateNames[duplicateName].AddRange(formFields.Where(ff => ff.Name.Equals(duplicateName)));
-                }
-            }
-
-            return formFieldsWithDuplicateNames;
         }
 
         private static bool HasValueArray(IonValueObject ionValue, out JArray arrayValue)

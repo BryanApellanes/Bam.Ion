@@ -55,16 +55,20 @@ namespace Bam.Ion
             return IonFormField.IsValid(json, out ionFormField);
         }
 
-        
+        public static bool IsForm(string json)
+        {
+            return IsForm(json, out IonFormValidationResult ignore);
+        }
 
         /// <summary>
         /// Determines if the specified json is an ion form.
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static bool IsForm(string json)
+        public static bool IsForm(string json, out IonFormValidationResult result)
         {
-            return IonForm.IsValid(json);
+            result = IonForm.Validate(json);
+            return result.Success;
         }
     }
 }

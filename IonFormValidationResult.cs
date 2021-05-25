@@ -8,9 +8,9 @@ namespace Bam.Ion
 {
     public class IonFormValidationResult
     {
-        public string SourceJson { get; set; }
+        public object SourceJson { get; set; }
 
-        public bool IsLInk { get; set; }
+        public bool IsLink { get; set; }
 
         public bool HasRelArray { get; set; }
 
@@ -21,5 +21,10 @@ namespace Bam.Ion
         public bool FormFieldsHaveUniqueNames { get; set; }
 
         public Dictionary<string, List<IonFormField>> FormFieldsWithDuplicateNames { get; set; }
+
+        public virtual bool Success
+        {
+            get { return IsLink && HasRelArray && HasValueArray && HasOnlyFormFields && FormFieldsHaveUniqueNames; }
+        }
     }
 }

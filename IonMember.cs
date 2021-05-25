@@ -175,7 +175,7 @@ namespace Bam.Ion
         /// </summary>
         /// <param name="memberNameToCheck"></param>
         /// <returns></returns>
-        public bool IsChildNamed(string memberNameToCheck)
+        public bool IsMemberNamed(string memberNameToCheck)
         {
             if(Parent == null)
             {

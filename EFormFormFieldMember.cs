@@ -82,17 +82,16 @@ namespace Bam.Ion
             if (Value is IIonJsonable ionJsonable)
             {
                 string ionJson = ionJsonable.ToIonJson();
-                isForm = IonForm.IsValid(ionJson);
+                isForm = IonForm.Validate(ionJson).Success;
             }
             else if (Value is IJsonable jsonable)
             {
                 string json = jsonable.ToJson();
-                isForm = IonForm.IsValid(json);
+                isForm = IonForm.Validate(json).Success;
             }
             else
             {
-                string json = JsonConvert.SerializeObject(Value);
-                isForm = IonForm.IsValid(json);
+                isForm = IonForm.Validate((IonMember)this).Success;
             }
             return isForm;
         }
