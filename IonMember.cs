@@ -139,7 +139,7 @@ namespace Bam.Ion
             return typedValue;
         }
 
-        public IonValueObject ValueObject()
+        public IonObject ValueObject()
         {
             if(Value == null)
             {
@@ -148,10 +148,10 @@ namespace Bam.Ion
 
             if(Value is IJsonable jsonable)
             {
-                return IonValueObject.ReadValue(jsonable.ToJson());
+                return IonObject.ReadObject(jsonable.ToJson());
             }
 
-            return IonValueObject.ReadValue(JsonConvert.SerializeObject(Value));
+            return IonObject.ReadObject(JsonConvert.SerializeObject(Value));
 
         }
 
@@ -163,7 +163,7 @@ namespace Bam.Ion
         [JsonIgnore]
         public object SourceValue { get; set; }
 
-        public IonValueObject Parent
+        public IonObject Parent
         {
             get;
             internal set;
@@ -191,16 +191,16 @@ namespace Bam.Ion
             return $"\"{Name}\": {Value?.ToJson()}";
         }
 
-        private static Dictionary<string, Func<object, IonValueObject>> _registeredMemberReaders = new Dictionary<string, Func<object, IonValueObject>>()
+        private static Dictionary<string, Func<object, IonObject>> _registeredMemberReaders = new Dictionary<string, Func<object, IonObject>>()
         {
             {"eform", (obj) =>
                 {
                     string stringValue = obj?.ToString();
                     if (stringValue.IsJson())
                     {
-                        return IonValueObject.ReadValue(stringValue);
+                        return IonObject.ReadObject(stringValue);
                     }
-                    return new IonValueObject { Value = obj };
+                    return new IonObject { Value = obj };
                 }
             }
         };

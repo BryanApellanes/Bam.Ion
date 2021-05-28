@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonFormField : IonValueObject
+    public class IonFormField : IonObject
     {
         public IonFormField() : base() { }
         public IonFormField(List<IonMember> members) : base(members) { }

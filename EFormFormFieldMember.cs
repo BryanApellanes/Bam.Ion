@@ -78,7 +78,7 @@ namespace Bam.Ion
 
         protected bool IsForm()
         {
-            bool isForm = false;
+            bool isForm;
             if (Value is IIonJsonable ionJsonable)
             {
                 string ionJson = ionJsonable.ToIonJson();

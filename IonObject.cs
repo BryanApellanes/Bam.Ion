@@ -16,30 +16,30 @@ namespace Bam.Ion
     /// Ion value whose value property is of the specified generic type.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class IonValueObject<T> : IonValueObject
+    public class IonObject<T> : IonObject
     {
-        public static implicit operator IonValueObject<T>(T value)
+        public static implicit operator IonObject<T>(T value)
         {
-            return new IonValueObject<T> { Value = value };
+            return new IonObject<T> { Value = value };
         }
 
-        public static implicit operator string(IonValueObject<T> value)
+        public static implicit operator string(IonObject<T> value)
         {
             return value.ToJson();
         }
 
-        public IonValueObject() { }
+        public IonObject() { }
 
-        public IonValueObject(List<IonMember> members) : base(members)
+        public IonObject(List<IonMember> members) : base(members)
         {
             this.Value = this.ToInstance();
         }
 
-        public IonValueObject(string json): this(IonMember.ListFromJson(json).ToList())
+        public IonObject(string json): this(IonMember.ListFromJson(json).ToList())
         {
         }
 
-        public IonValueObject(T value)
+        public IonObject(T value)
         {
             this.Value = value;
         }
@@ -56,7 +56,7 @@ namespace Bam.Ion
                     _value != null)
                 {
                     Type typeOfValue = _value.GetType();
-                    if (!IonValueTypes.All.Contains(typeOfValue))
+                    if (!IonTypes.All.Contains(typeOfValue))
                     {
                         this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
                     }
@@ -122,7 +122,7 @@ namespace Bam.Ion
                 {
                     return Value.ToJson().Equals(otherValue.ToJson());
                 }
-                else if (obj is IonValueObject<T> otherIonObject)
+                else if (obj is IonObject<T> otherIonObject)
                 {
                     return Value.Equals(otherIonObject.Value);
                 }
@@ -132,14 +132,14 @@ namespace Bam.Ion
         }
     }
 
-    public class IonValueObject : IonType, IJsonable, IIonJsonable, IEnumerable<IonMember>
+    public class IonObject : IonType, IJsonable, IIonJsonable, IEnumerable<IonMember>
     {
-        public static implicit operator IonValueObject(string value)
+        public static implicit operator IonObject(string value)
         {
-            return new IonValueObject { Value = value };
+            return new IonObject { Value = value };
         }
         
-        public static implicit operator string(IonValueObject value)
+        public static implicit operator string(IonObject value)
         {
             return value.ToJson();
         }
@@ -147,14 +147,14 @@ namespace Bam.Ion
         private List<IonMember> _memberList;
         private Dictionary<string, IonMember> _memberDictionary;
 
-        public IonValueObject()
+        public IonObject()
         {
             this._memberList = new List<IonMember>();
             this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = new Dictionary<string, object>();
         }
 
-        public IonValueObject(List<IonMember> members)
+        public IonObject(List<IonMember> members)
         {
             this._memberList = members;
             this._memberDictionary = new Dictionary<string, IonMember>();
@@ -162,16 +162,38 @@ namespace Bam.Ion
             this.Initialize();
         }
 
-        public IonValueObject(params IonMember[] members) : this(members.ToList())
+        public IonObject(params IonMember[] members) : this(members.ToList())
         {
         }
 
-        public IonValueObject(List<IonMember> ionMembers, Dictionary<string, object> contextData) : this()
+        public IonObject(List<IonMember> ionMembers, Dictionary<string, object> contextData) : this()
         {
             this._memberList = ionMembers;
             this._memberDictionary = new Dictionary<string, IonMember>();
             this.SupportingMembers = contextData;
             this.Initialize();
+        }
+
+        static object _registeredMemberLock = new object();
+        static HashSet<string> _registeredMembers;
+        public static HashSet<string> RegisteredMembers
+        {
+            get
+            {
+                return _registeredMemberLock.DoubleCheckLock(ref _registeredMembers, () => new HashSet<string>(new[]
+                {
+                    "eform",
+                    "etype",
+                    "form",
+                    "href",
+                    "method",
+                    "accepts",
+                    "produces",
+                    "rel",
+                    "type",
+                    "value"
+                }));
+            }
         }
 
         [YamlIgnore]
@@ -205,7 +227,7 @@ namespace Bam.Ion
             }
             if(obj != null && Value != null)
             {
-                if (obj is IonValueObject otherIonObject)
+                if (obj is IonObject otherIonObject)
                 {
                     return Value.Equals(otherIonObject.Value);
                 }
@@ -233,9 +255,9 @@ namespace Bam.Ion
             set;
         }
 
-        public IonValueObject ValueOf(string memberName)
+        public IonObject ValueOf(string memberName)
         {
-            return new IonValueObject(IonMember.ListFromObject(this[memberName]?.Value).ToArray());
+            return new IonObject(IonMember.ListFromObject(this[memberName]?.Value).ToArray());
         }
 
         public IonMember MemberOf(string memberName)
@@ -243,12 +265,12 @@ namespace Bam.Ion
             return this[memberName];
         }
 
-        public IonValueObject AddMember(string name, object value)
+        public IonObject AddMember(string name, object value)
         {
             return AddMember(new IonMember(name, value));
         }
 
-        public IonValueObject AddMember(IonMember ionMember)
+        public IonObject AddMember(IonMember ionMember)
         {
             ionMember.Parent = this;
             _memberList.Add(ionMember);
@@ -299,7 +321,7 @@ namespace Bam.Ion
                    _value != null)
                 {
                     Type typeOfValue = _value.GetType();
-                    if (!IonValueTypes.All.Contains(typeOfValue))
+                    if (!IonTypes.All.Contains(typeOfValue))
                     {
                         this.Members = IonMember.ListFromJson(_value?.ToJson()).ToList();
                     }
@@ -317,7 +339,7 @@ namespace Bam.Ion
         /// <param name="name"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IonValueObject SetSupportingMember(string name, object data)
+        public IonObject SetSupportingMember(string name, object data)
         {
             if(SupportingMembers == null)
             {
@@ -336,7 +358,7 @@ namespace Bam.Ion
             return this;
         }
 
-        public IonValueObject AddSupportingMembers(List<System.Collections.Generic.KeyValuePair<string, object>> keyValuePairs)
+        public IonObject AddSupportingMembers(List<System.Collections.Generic.KeyValuePair<string, object>> keyValuePairs)
         {
             foreach(System.Collections.Generic.KeyValuePair<string, object> kvp in keyValuePairs)
             {
@@ -353,7 +375,7 @@ namespace Bam.Ion
         /// <param name="name"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IonValueObject AddSupportingMember(string name, object data = null)
+        public IonObject AddSupportingMember(string name, object data = null)
         {
             if (!SupportingMembers.ContainsKey(name))
             {
@@ -363,32 +385,32 @@ namespace Bam.Ion
             return this;
         }
 
-        public IonValueObject SetTypeContext<T>()
+        public IonObject SetTypeContext<T>()
         {
             return SetTypeContext(typeof(T));
         }
 
-        public IonValueObject SetTypeContext(Type type)
+        public IonObject SetTypeContext(Type type)
         {
             return SetSupportingMember("type", type.Name);
         }
 
-        public IonValueObject SetTypeFullNameContext<T>()
+        public IonObject SetTypeFullNameContext<T>()
         {
             return SetTypeFullNameContext(typeof(T));
         }
 
-        public IonValueObject SetTypeFullNameContext(Type type)
+        public IonObject SetTypeFullNameContext(Type type)
         {
             return SetSupportingMember("fullName", type.FullName);
         }
 
-        public IonValueObject SetTypeAssemblyQualifiedNameContext<T>()
+        public IonObject SetTypeAssemblyQualifiedNameContext<T>()
         {
             return SetTypeAssemblyQualifiedNameContext(typeof(T));
         }
 
-        public IonValueObject SetTypeAssemblyQualifiedNameContext(Type type)
+        public IonObject SetTypeAssemblyQualifiedNameContext(Type type)
         {
             return SetSupportingMember("assemblyQualifiedName", type.AssemblyQualifiedName);
         }
@@ -398,7 +420,7 @@ namespace Bam.Ion
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static IonValueObject ReadValue(string json)
+        public static IonObject ReadObject(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
             List<IonMember> members = new List<IonMember>();
@@ -406,7 +428,7 @@ namespace Bam.Ion
             {
                 members.Add(keyValuePair);
             }
-            return new IonValueObject(members) { SourceJson = json };
+            return new IonObject(members) { SourceJson = json };
         }
 
         /// <summary>
@@ -415,7 +437,7 @@ namespace Bam.Ion
         /// <typeparam name="T"></typeparam>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static IonValueObject<T> ReadValue<T>(string json)
+        public static IonObject<T> ReadObject<T>(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
             Dictionary<string, PropertyInfo> properties = IonMember.GetPropertyDictionary(typeof(T));
@@ -434,7 +456,7 @@ namespace Bam.Ion
                 }              
             }
 
-            IonValueObject<T> result = new IonValueObject<T>(members) { SourceJson = json };
+            IonObject<T> result = new IonObject<T>(members) { SourceJson = json };
             result.Initialize();
             result.Value = result.ToInstance();
             result.AddSupportingMembers(supportingMembers);

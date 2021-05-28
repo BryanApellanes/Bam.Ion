@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonLink : IonValueObject, IIonLink, IJsonable
+    public class IonLink : IonObject, IIonLink, IJsonable
     {
         WebLink webLink;
 

@@ -10,9 +10,9 @@ namespace Bam.Ion
     {
         public IonRoot()
         {
-            Data = new Dictionary<string, IonValueObject>();
+            Data = new Dictionary<string, IonObject>();
         }
 
-        public Dictionary<string, IonValueObject> Data { get; set; }
+        public Dictionary<string, IonObject> Data { get; set; }
     }
 }

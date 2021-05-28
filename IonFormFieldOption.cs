@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public class IonFormFieldOption : IonValueObject
+    public class IonFormFieldOption : IonObject
     {
 
         static HashSet<string> _formFieldOptionMembers;

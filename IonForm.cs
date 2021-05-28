@@ -45,7 +45,14 @@ namespace Bam.Ion
             {
                 if (!"value".Equals(key))
                 {
-                    ionForm.AddElementMetaData(key, dictionary[key]);
+                    if (RegisteredMembers.Contains(key))
+                    {
+                        ionForm.AddMember(key, dictionary[key]);
+                    }
+                    else
+                    {
+                        ionForm.AddElementMetaData(key, dictionary[key]);
+                    }
                 }
             }
             ionForm.SourceJson = json;
@@ -56,17 +63,17 @@ namespace Bam.Ion
 
         public static bool IsValid(object formValueToCheck)
         {
-            return IsValid(formValueToCheck, out IonValueObject ignore);
+            return IsValid(formValueToCheck, out IonObject ignore);
         }
 
-        public static bool IsValid(object formValueToCheck, out IonValueObject ionValueObject)
+        public static bool IsValid(object formValueToCheck, out IonObject ionValueObject)
         {
             string json = formValueToCheck?.ToJson();
             bool isValid =  Validate(json).Success;
             ionValueObject = null;
             if (isValid)
             {
-                ionValueObject = IonValueObject.ReadValue(json);
+                ionValueObject = IonObject.ReadObject(json);
             }
             return isValid;
         }
@@ -103,12 +110,12 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
             }
             bool isLink = Ion.IsLink(ionMember.Value.ToJson());
 
-            IonValueObject ionValue = ionMember.ValueObject();
+            IonObject ionValue = ionMember.ValueObject();
             bool hasRelArray = HasValidRelArray(ionValue);
             bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
 
             IonFormFieldValidationResult formFieldValidationResult = IonFormFieldValidationResult.ValidateFormFields(jArrayValue);
-            return new IonFormValidationResult
+            return new IonFormMemberValidationResult(ionMember)
             {
                 IsLink = isLink,
                 HasRelArray = hasRelArray,
@@ -143,7 +150,7 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
              */
             bool isLink = Ion.IsLink(json);
 
-            IonValueObject ionValue = IonValueObject.ReadValue(json);
+            IonObject ionValue = IonObject.ReadObject(json);
             bool hasRelArray = HasValidRelArray(ionValue);
             bool hasValueArray = HasValueArray(ionValue, out JArray jArrayValue);
                         
@@ -160,7 +167,7 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
             };
         }
 
-        private static bool HasValueArray(IonValueObject ionValue, out JArray arrayValue)
+        private static bool HasValueArray(IonObject ionValue, out JArray arrayValue)
         {
             arrayValue = new JArray();
             if (ionValue["value"]?.Value is JArray valueArray)
@@ -175,7 +182,7 @@ Ion parsers MUST identify any JSON object as an Ion Form if the object matches t
             return false;
         }
 
-        private static bool HasValidRelArray(IonValueObject ionValue)
+        private static bool HasValidRelArray(IonObject ionValue)
         {
             JArray relArray = ionValue["rel"].Value as JArray;
             if (relArray != null)

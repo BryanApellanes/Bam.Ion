@@ -12,21 +12,21 @@ using YamlDotNet.Serialization;
 
 namespace Bam.Ion
 {    
-    public class IonCollection : IonValueObject, IJsonable, IIonJsonable, IEnumerable, IEnumerable<IonValueObject>
+    public class IonCollection : IonObject, IJsonable, IIonJsonable, IEnumerable, IEnumerable<IonObject>
     {
         private List<JToken> _jTokens;
-        private List<IonValueObject> _ionValueObjectList;
+        private List<IonObject> _ionValueObjectList;
         private Dictionary<string, object> _metaData;
 
         public IonCollection()
         {
             _jTokens = new List<JToken>();
-            _ionValueObjectList = new List<IonValueObject>();
+            _ionValueObjectList = new List<IonObject>();
             _metaData = new Dictionary<string, object>();
             Value = _ionValueObjectList;
         }
 
-        public IonCollection(List<IonValueObject> ionValues) 
+        public IonCollection(List<IonObject> ionValues) 
         {
             _jTokens = new List<JToken>();
             _ionValueObjectList = ionValues;
@@ -37,7 +37,7 @@ namespace Bam.Ion
         public IonCollection(List<JToken> jTokens)
         {
             _jTokens = jTokens;
-            _ionValueObjectList = jTokens.Select(jt => new IonValueObject { Value = jt }).ToList();
+            _ionValueObjectList = jTokens.Select(jt => new IonObject { Value = jt }).ToList();
             _metaData = new Dictionary<string, object>();
             Value = _ionValueObjectList;
         }
@@ -48,7 +48,7 @@ namespace Bam.Ion
             get => _metaData;
         }
 
-        public new List<IonValueObject> Value
+        public new List<IonObject> Value
         {
             get => _ionValueObjectList;
             set
@@ -57,7 +57,7 @@ namespace Bam.Ion
             }
         }
 
-        IEnumerator<IonValueObject> IEnumerable<IonValueObject>.GetEnumerator()
+        IEnumerator<IonObject> IEnumerable<IonObject>.GetEnumerator()
         {
             return _ionValueObjectList.GetEnumerator();
         }
@@ -67,17 +67,17 @@ namespace Bam.Ion
             return _ionValueObjectList.GetEnumerator();
         }
 
-        public virtual void Add(IonValueObject ionValueObject)
+        public virtual void Add(IonObject ionValueObject)
         {
             _ionValueObjectList.Add(ionValueObject);
         }
         
         public virtual void Add<T>(string json)
         {
-            this.Add<T>(new IonValueObject<T>(json));
+            this.Add<T>(new IonObject<T>(json));
         }
 
-        public virtual void Add<T>(IonValueObject<T> ionValueObject)
+        public virtual void Add<T>(IonObject<T> ionValueObject)
         {
             _ionValueObjectList.Add(ionValueObject);
         }
@@ -93,7 +93,7 @@ namespace Bam.Ion
 
         [YamlIgnore]
         [JsonIgnore]
-        public IonValueObject this[int index]
+        public IonObject this[int index]
         {
             get
             {
@@ -166,7 +166,7 @@ namespace Bam.Ion
             return ionCollection;
         }
 
-        protected void RemoveObject(IonValueObject ionObject)
+        protected void RemoveObject(IonObject ionObject)
         {
             if (_ionValueObjectList.Contains(ionObject))
             {

@@ -20,7 +20,7 @@ namespace Bam.Ion
             return base.IsValid();
         }
 
-        public override bool ParentFieldIsValid(IonValueObject ionValueObject)
+        public override bool ParentFieldIsValid(IonObject ionValueObject)
         {
             IonMember typeMember = ionValueObject["type"];
             if("array".Equals(typeMember.Value) || "set".Equals(typeMember.Value))

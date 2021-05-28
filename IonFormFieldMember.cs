@@ -60,7 +60,7 @@ namespace Bam.Ion
         [JsonIgnore]
         public string Description { get; protected set; }
 
-        public virtual bool ParentFieldIsValid(IonValueObject ionValueObject)
+        public virtual bool ParentFieldIsValid(IonObject ionValueObject)
         {
             return true;
         }
@@ -78,7 +78,7 @@ namespace Bam.Ion
                 ObjectValue = value;
                 Type objectType = ObjectValue.GetType();
                 string stringValue = ObjectValue as string;
-                if (!IonValueTypes.All.Contains(objectType) || !string.IsNullOrEmpty(stringValue))
+                if (!IonTypes.All.Contains(objectType) || !string.IsNullOrEmpty(stringValue))
                 {
                     if (!string.IsNullOrEmpty(stringValue) && stringValue.IsJson(out JObject jo))
                     {

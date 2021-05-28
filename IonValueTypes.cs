@@ -6,25 +6,28 @@ using System.Threading.Tasks;
 
 namespace Bam.Ion
 {
-    public static class IonValueTypes
+    public enum IonValueTypes
     {
-        static IonValueTypes()
-        {
-            All = new HashSet<Type>
-            {
-                String,
-                Int,
-                Long,
-                ULong,
-                DateTime
-            };
-        }
-        public static HashSet<Type> All { get; private set; }
-
-        public static Type String => typeof(string);
-        public static Type Int => typeof(int);
-        public static Type Long => typeof(long);
-        public static Type ULong => typeof(ulong);
-        public static Type DateTime => typeof(DateTime);
+        Invalid,
+        _Array,
+        _Binary,
+        _Boolean,
+        _Date,
+        _DateTime,
+        _Decimal,
+        _Duration,
+        _Email,
+        _File,
+        _Integer,
+        _Iri,
+        _Link,
+        _Number,
+        _Object,
+        _PDateTime,
+        _PTime,
+        _Set,
+        _String,
+        _Time,
+        _Url
     }
 }
