@@ -163,6 +163,8 @@ namespace Bam.Ion
         [JsonIgnore]
         public object SourceValue { get; set; }
 
+        [YamlIgnore]
+        [JsonIgnore]
         public IonObject Parent
         {
             get;

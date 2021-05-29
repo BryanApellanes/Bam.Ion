@@ -11,8 +11,15 @@ namespace Bam.Ion
     public class IonFormField : IonObject
     {
         public IonFormField() : base() { }
-        public IonFormField(List<IonMember> members) : base(members) { }
-        public IonFormField(params IonMember[] members) : base(members) { }
+        public IonFormField(List<IonMember> members) : base(members) 
+        {
+            this.SetEtype();
+        }
+
+        public IonFormField(params IonMember[] members) : base(members) 
+        {
+            this.SetEtype();
+        }
 
         public IonFormField(string name, params IonMember[] members) : this(members)
         {
@@ -70,6 +77,11 @@ namespace Bam.Ion
             this["enabled"].Value = enabled;
             return this;
         }
+        
+        protected void SetEtype()
+        {
+            this["etype"] = this["etype"];
+        }
 
         public new IonFormFieldOption Value { get; set; }
 
@@ -78,6 +90,27 @@ namespace Bam.Ion
             get
             {
                 IonMember baseMember = base[memberName];
+                if ("etype".Equals(memberName))
+                {
+                    if(baseMember.Value == null)
+                    {
+                        if (baseMember.Parent["eform"]?.Value != null)
+                        {
+                            baseMember.Value = "object";
+                        }
+                    }
+                    if (!"object".Equals(baseMember.Value))
+                    {
+                        return null;
+                    }
+                }
+                if ("enabled".Equals(memberName))
+                {
+                    if(baseMember.Value?.GetType() != typeof(bool))
+                    {
+                        return null;
+                    }
+                }
                 if (IonFormFieldMember.RegisteredNames.Contains(memberName))
                 {
                     if (IonFormFieldMember.RegisteredFormFieldIsValid(memberName, baseMember) != true)
@@ -85,6 +118,7 @@ namespace Bam.Ion
                         return null;
                     }
                 }
+
                 return baseMember;
             }
             set

@@ -292,7 +292,7 @@ namespace Bam.Ion
                 {
                     return _memberDictionary[camelCase];
                 }
-                IonMember result = new IonMember { Name = name };
+                IonMember result = new IonMember { Name = name, Parent = this };
                 _memberDictionary.Add(camelCase, result);
                 _memberDictionary.Add(pascalCase, result);
                 return result;

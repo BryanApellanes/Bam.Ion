@@ -102,25 +102,30 @@ namespace Bam.Ion
 
         static Dictionary<string, Func<IonMember, IonFormField>> _registeredFormFieldMemberReaders = new Dictionary<string, Func<IonMember, IonFormField>>()
         {
-            {"eform", (val) =>  
+            { "eform", (member) =>
                 {
-                    if (RegisteredFormFieldMemberTypes.ContainsKey("eform"))
+                    if (RegisteredFormFieldMemberTypes.ContainsKey(member.Name))
                     {
-                        if(val.Value == null)
+                        if (member.Value == null)
                         {
                             return null;
                         }
-                        IonFormFieldMember formField = RegisteredFormFieldMemberTypes["eform"].Construct<IonFormFieldMember>(val.Value);
+                        IonFormFieldMember formField = ContructFormFieldMember(member);
                         if (!formField.IsValid())
                         {
                             return null;
                         }
                     }
-                    IonFormField result = new IonFormField("eform", IonMember.ListFromObject(val).ToArray());
+                    IonFormField result = new IonFormField(member.Name, IonMember.ListFromObject(member.Value).ToArray());
                     return result;
                 }
             }
         };
+
+        private static IonFormFieldMember ContructFormFieldMember(IonMember val)
+        {
+            return RegisteredFormFieldMemberTypes[val.Name].Construct<IonFormFieldMember>(val.Value);
+        }
 
         static object _registeredFormFieldMemberTypesLock = new object();
         static Dictionary<string, Type> _registeredFormFieldMemberTypes;
@@ -131,11 +136,11 @@ namespace Bam.Ion
                 return _registeredFormFieldMemberTypesLock.DoubleCheckLock(ref _registeredFormFieldMemberTypes, () =>
                 {
                     Dictionary<string, Type> temp = new Dictionary<string, Type>();
-                     Assembly.GetExecutingAssembly()
-                        .GetTypes()
-                        .Where(type => type.HasCustomAttributeOfType<RegisteredFormFieldMemberAttribute>())
-                        .Select(type=> new { Type = type, Attribute = type.GetCustomAttribute<RegisteredFormFieldMemberAttribute>() })
-                        .Each(val => temp.Add(val.Attribute.MemberName, val.Type));
+                    Assembly.GetExecutingAssembly()
+                       .GetTypes()
+                       .Where(type => type.HasCustomAttributeOfType<RegisteredFormFieldMemberAttribute>())
+                       .Select(type => new { Type = type, Attribute = type.GetCustomAttribute<RegisteredFormFieldMemberAttribute>() })
+                       .Each(val => temp.Add(val.Attribute.MemberName, val.Type));
                     return temp;
                 });
             }
@@ -158,7 +163,18 @@ namespace Bam.Ion
             {
                 return _registeredFormFieldMemberReaders[registeredMemberName](member);
             }
-            string stringValue = member?.ToString();
+            if(member?.Value is IJsonable jsonable)
+            {
+                return IonFormField.Read(jsonable.ToJson());
+            }
+            if(member?.Value is string stringValue)
+            {
+                if (stringValue.IsJson())
+                {
+                    return IonFormField.Read(stringValue);
+                }
+            }
+            stringValue = member?.ToString();
             if (stringValue.IsJson())
             {
                 return IonFormField.Read(stringValue);
