@@ -6,11 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="bam.net.core" Version="1.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Bam.Net\_lib\bam.net.core\bam.net.core.csproj" />
   </ItemGroup>
 
 </Project>
