@@ -27,13 +27,13 @@ namespace Bam.Ion
         }
 
         [JsonProperty("href")]
-        public Iri Href 
+        public Iri Href
         {
             get => webLink.Target;
             set => webLink.Target = value;
         }
 
-        public string ToJson()
+        public override string ToJson()
         {
             return ToJson(false);
         }

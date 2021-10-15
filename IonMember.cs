@@ -90,7 +90,7 @@ namespace Bam.Ion
 
         public static implicit operator IonMember(string value)
         {
-            if(value.TryFromJson<IonMember>(out IonMember result))
+            if(value.TryFromJson(out IonMember result))
             {
                 result.SourceValue = result.Value;
                 return result;

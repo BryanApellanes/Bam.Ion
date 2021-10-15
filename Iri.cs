@@ -36,7 +36,7 @@ namespace Bam.Ion
             }
             catch (Exception ex)
             {
-                (exceptionHandler ?? ((ex) => Bam.Net.Logging.Log.Error("Exception parsing iri: {0}", ex, ex.Message)))(ex);
+                (exceptionHandler ?? ((exception) => Bam.Net.Logging.Log.Error("Exception parsing iri: {0}", exception, exception.Message)))(ex);
                 return false;
             }
         }

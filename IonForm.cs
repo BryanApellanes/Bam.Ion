@@ -27,6 +27,7 @@ namespace Bam.Ion
             set;
         }
 
+
         public new static IonForm Read(string json)
         {
             Dictionary<string, object> dictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);

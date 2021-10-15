@@ -1,15 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Bam.Ion</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="bam.ion.tests\**" />
+    <Compile Remove="Flow\**" />
     <EmbeddedResource Remove="bam.ion.tests\**" />
+    <EmbeddedResource Remove="Flow\**" />
     <None Remove="bam.ion.tests\**" />
+    <None Remove="Flow\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Bam.Net\_lib\bam.net.core\bam.net.core.csproj" />
+    <ProjectReference Include="..\bam.net.core\_lib\bam.net.core\bam.net.core.csproj" />
   </ItemGroup>
 
 </Project>

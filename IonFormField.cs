@@ -45,11 +45,10 @@ namespace Bam.Ion
         /// <summary>
         /// All registered form field members.
         /// </summary>
-        public static HashSet<string> RegisteredMembers
+        public static new HashSet<string> RegisteredMembers
         {
             get => IonFormFieldMember.RegisteredNames;
         }
-
 
         public string Desc()
         {

@@ -10,6 +10,6 @@ namespace Bam.Ion
     public interface IIonLink
     {
         [JsonProperty("href")]
-        public Iri Href { get; set; }
+        Iri Href { get; set; }
     }
 }
