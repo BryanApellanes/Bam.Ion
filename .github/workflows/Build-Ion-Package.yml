@@ -24,7 +24,7 @@ jobs:
         nuget restore ./Bam.Net.Ion.Tests/Bam.Net.Ion.Tests.csproj
 
     - name: Run Unit Tests
-      working-directory: ./Ion.Net.Tests
+      working-directory: ./Bam.Net.Ion.Tests
       run: dotnet test
 
     - name: Build nuget package
