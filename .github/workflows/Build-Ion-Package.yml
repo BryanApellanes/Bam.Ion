@@ -28,7 +28,7 @@ jobs:
       run: dotnet test
 
     - name: Build nuget package
-      run: nuget pack ./Ion.Net/Ion.Net.csproj -Build
+      run: nuget pack ./Bam.Net.Ion/Bam.Net.Ion.csproj -Build
 
     - name: Copy nuget artifacts
       run: mv *.nupkg ./artifacts
