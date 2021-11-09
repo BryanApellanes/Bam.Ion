@@ -1,4 +1,4 @@
-name: Build Ion.Net nuget package
+name: Build Bam.Net.Ion nuget package
 
 on: [push]
 
