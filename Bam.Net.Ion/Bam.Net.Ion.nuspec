@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Bam.Net.Ion</id>
+    <version>0.1.0</version>
+    <authors>Bryan Apellanes</authors>
+    <owners>Bryan Apellanes</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/BryanApellanes/Bam.Ion/blob/ion-net/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/BryanApellanes/Bam.Ion</projectUrl>
+    <description>Ion spec parser for .Net, see https://ionspec.org/.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>(c) 2021 Bryan Apellanes</copyright>
+    <tags>ion</tags>
+    <repository type="Git" url="https://github.com/BryanApellanes/Bam.Ion.git" />
+    <dependencies>
+      <dependency id="Microsoft.AspNetCore.WebUtilities" version="2.2.0" />
+      <dependency id="Newtonsoft.Json" version="13.0.1" />
+      <dependency id="YamlDotNet" version="11.2.1" />
+    </dependencies>
+  </metadata>
+</package>

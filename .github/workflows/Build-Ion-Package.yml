@@ -1,0 +1,40 @@
+name: Build Bam.Net.Ion nuget package
+
+on: [push]
+
+jobs:
+  build-nuget-package:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create artifacts directory
+      run: mkdir -p ./artifacts
+
+    - name: Setup .NET Core SDK 5.0.x
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+
+    - name: Nuget restore
+      run: |
+        nuget restore ./Bam.Net.Ion/Bam.Net.Ion.csproj &&
+        nuget restore ./Bam.Net.Ion.Tests/Bam.Net.Ion.Tests.csproj
+
+    - name: Run Unit Tests
+      working-directory: ./Bam.Net.Ion.Tests
+      run: dotnet test
+
+    - name: Build nuget package
+      run: nuget pack ./Bam.Net.Ion/Bam.Net.Ion.csproj -Build
+
+    - name: Copy nuget artifacts
+      run: mv *.nupkg ./artifacts
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Ion.Net
+        path: ./artifacts
