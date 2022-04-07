@@ -1,18 +1,14 @@
-﻿using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Bam.Ion;
+using FluentAssertions;
 using Xunit;
-using Bam.Ion;
 
-namespace Bam.Net.Ion.Tests.UnitTests
+namespace Bam.Ion.Tests
 {
-    public class IonCollectionTests
+    // TODO: rename class to IonCollectionShould and rename methods accordingly
+    public class IonCollectionShould
     {
         [Fact]
-        public void EmptyIonCollectionSerializesAsExpected()
+        public void SerializeEmpty()
         {
             string expected = @"{
   ""value"": []
@@ -25,7 +21,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void IonCollectionShouldContainValue()
+        public void ContainValue()
         {
             string testValue = "test Value";
 
@@ -37,7 +33,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void IonCollectionShouldContainObjectValue()
+        public void ShouldContainObjectValue()
         {
             string bob = @"{
   ""firstName"": ""Bob"",
@@ -56,7 +52,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void IonCollectionShouldConainIonObjectValue()
+        public void ShouldContainIonObjectValue()
         {
             string bob = @"{
   ""firstName"": ""Bob"",
@@ -66,8 +62,8 @@ namespace Bam.Net.Ion.Tests.UnitTests
   ""firstName"": ""Jane"",
   ""lastName"": ""Doe""
 }";
-            IonObject<TestPerson> bobObj = new IonObject<TestPerson>(bob);
-            IonObject<TestPerson> janeObj = new IonObject<TestPerson>(jane);
+            IonValueObject<TestPerson> bobObj = new IonValueObject<TestPerson>(bob);
+            IonValueObject<TestPerson> janeObj = new IonValueObject<TestPerson>(jane);
 
             IonCollection ionCollection = new IonCollection();
             ionCollection.Add(bobObj);
@@ -80,9 +76,9 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void IonCollectionCanHaveElementMetaData()
+        public void HaveElementMetaData()
         {
-           string collectionJson = @"{
+            string collectionJson = @"{
     ""eform"": { ""href"": ""https://example.io/users/form"" },
     ""value"": [
         {
@@ -95,14 +91,14 @@ namespace Bam.Net.Ion.Tests.UnitTests
       }
     ]
 }";
-            IonCollection ionCollection = IonCollection.Read(collectionJson);
+            IonCollection ionCollection = IonCollection.ReadCollection(collectionJson);
             ionCollection.Count.Should().Be(2);
             ionCollection.MetaDataElements.Should().NotBeNull();
             ionCollection.MetaDataElements.Count.Should().Be(1);
         }
 
         [Fact]
-        public void IonCollectionWithMetaWillSerializeAsExpected()
+        public void SerializeWithMeta()
         {
             string collectionJson = @"{
   ""eform"": {
@@ -119,7 +115,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
     }
   ]
 }";
-            IonCollection ionCollection = IonCollection.Read(collectionJson);
+            IonCollection ionCollection = IonCollection.ReadCollection(collectionJson);
             string json = ionCollection.ToIonJson(true);
 
             ionCollection.Count.Should().Be(2);
@@ -129,7 +125,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void EmptyIonCollectionWithMetaWillSerializeAsExpected()
+        public void SerializeEmptyWithMeta()
         {
             string sourceJson = @"{
   ""self"": {
@@ -140,7 +136,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
   },
   ""value"": []
 }";
-            IonCollection ionCollection = IonCollection.Read(sourceJson);
+            IonCollection ionCollection = IonCollection.ReadCollection(sourceJson);
             string json = ionCollection.ToIonJson(true);
 
             ionCollection.Count.Should().Be(0);
@@ -150,7 +146,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
         }
 
         [Fact]
-        public void MoreComplexExampleShouldDoRoundTrip()
+        public void DoRoundTrip()
         {
             string json = @"{
   ""self"": {
@@ -202,7 +198,7 @@ namespace Bam.Net.Ion.Tests.UnitTests
   ]
 }";
 
-            IonCollection ionCollection = IonCollection.Read(json);
+            IonCollection ionCollection = IonCollection.ReadCollection(json);
             string output = ionCollection.ToIonJson(true);
 
             ionCollection.Count.Should().Be(2);

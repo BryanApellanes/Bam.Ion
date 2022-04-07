@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31729.503
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32314.265
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bam.Net.Ion.Tests", "Bam.Net.Ion.Tests\Bam.Net.Ion.Tests.csproj", "{4BCD326F-F672-48A7-B10B-FF8B45C2CED1}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Bam.Ion.Shared", "Bam.Ion.Shared\Bam.Ion.Shared.shproj", "{E90AD551-0D0B-40BB-98A5-18D17CD5F4BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bam.Net.Ion", "Bam.Net.Ion\Bam.Net.Ion.csproj", "{D8B22F6B-BE93-48D3-90C1-D7E8C8B3C6AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bam.Ion", "Bam.Ion\Bam.Ion.csproj", "{B7D538C9-4C49-4446-821E-2F16A8143BA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bam.Ion.Tests", "Bam.Ion.Tests\Bam.Ion.Tests.csproj", "{0F276E8C-385D-4B0F-AA2E-2DB684EAF48A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,19 +15,23 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4BCD326F-F672-48A7-B10B-FF8B45C2CED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BCD326F-F672-48A7-B10B-FF8B45C2CED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BCD326F-F672-48A7-B10B-FF8B45C2CED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BCD326F-F672-48A7-B10B-FF8B45C2CED1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D8B22F6B-BE93-48D3-90C1-D7E8C8B3C6AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8B22F6B-BE93-48D3-90C1-D7E8C8B3C6AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D8B22F6B-BE93-48D3-90C1-D7E8C8B3C6AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D8B22F6B-BE93-48D3-90C1-D7E8C8B3C6AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D538C9-4C49-4446-821E-2F16A8143BA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D538C9-4C49-4446-821E-2F16A8143BA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D538C9-4C49-4446-821E-2F16A8143BA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D538C9-4C49-4446-821E-2F16A8143BA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F276E8C-385D-4B0F-AA2E-2DB684EAF48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F276E8C-385D-4B0F-AA2E-2DB684EAF48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F276E8C-385D-4B0F-AA2E-2DB684EAF48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F276E8C-385D-4B0F-AA2E-2DB684EAF48A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {05C4A746-4A7E-4961-A226-2386BAD9DE5B}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Bam.Ion.Shared\Bam.Ion.projitems*{b7d538c9-4c49-4446-821e-2f16a8143ba4}*SharedItemsImports = 5
+		Bam.Ion.Shared\Bam.Ion.projitems*{e90ad551-0d0b-40bb-98a5-18d17cd5f4bc}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>e90ad551-0d0b-40bb-98a5-18d17cd5f4bc</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Bam.Ion</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Base64UrlEncodedByteArray.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ByteArrayExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CollectionResource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomAttributeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EFormFormFieldMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormSubmissionObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IIonJsonable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IIonLink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IIonResource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IJsonable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonApi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonForm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormField.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormFieldMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormFieldOption.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormFieldValidationResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormMemberValidationResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormSubmissionObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonFormValidationResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonLink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonLinkedForm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonMediaType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonObjectTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonValueObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IonValueObject{TValue}.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Iri.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IriObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)JsonExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LinkRelationType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ReflectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RegisteredFormFieldMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TypeContextKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WebLink.cs" />
+  </ItemGroup>
+</Project>
