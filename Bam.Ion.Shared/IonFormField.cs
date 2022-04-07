@@ -86,7 +86,7 @@ namespace Bam.Ion
         public override bool IsForm(out IonForm? form)
         {
             form = null;
-            if("object".Equals(this.TypeString))
+            if ("object".Equals(this.TypeString))
             {
                 return this["form"].IsForm(out form);
             }
